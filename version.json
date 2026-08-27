@@ -1,7 +1,7 @@
 {
-    "version": "1.0.0",
+    "version": "1.5.0",
     "release_date": "2026-08-20",
     "check_url": "https://raw.githubusercontent.com/mrpoeta2018/marketingeo/master/version.json",
-    "notes": "Kick Integration (Personalities, Auto-Follow, Rescue Protocol), Spotify Captcha Bypass, Smart Ghost Touch.",
+    "notes": "Marketingeo Edition. Lotes dinamicos, Emojis Verdes, Auto-Reparacion en Cascada, Selector de Intervalos.",
     "download_url": "https://github.com/mrpoeta2018/marketingeo/archive/refs/heads/master.zip"
 }
