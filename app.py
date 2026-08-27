@@ -2320,72 +2320,55 @@ class MarketingeoApp(ctk.CTk):
         return True
 
     def _kick_chat_engine(self, serial):
+        """Motor de chat inteligente: lee el chat, elige un comentario y lo envia via interact_kick_stream."""
         import random, time
         if not getattr(self, 'kick_interact', None) or not self.kick_interact.get():
             return
-            
-        # 1. Asignar Personalidad
-        if not hasattr(self, 'kick_personalities'):
-            self.kick_personalities = {}
-        if serial not in self.kick_personalities:
-            self.kick_personalities[serial] = random.choice(["Fan", "Troll", "Spammer"])
-            
-        perfil = self.kick_personalities[serial]
-        self.log_msg(f"🎭 [{serial[-4:]}] Chat Engine ({perfil}). Analizando contexto...", "info")
         
-        # 2. Leer pantalla (Chat actual)
+        # 1. Leer pantalla actual del chat
         root = getattr(self, 'pull_and_parse', lambda x: None)(serial)
         chat_text = ""
         if root is not None:
             chat_text = " ".join([n.get("text", "").lower() for n in root.iter("node")])
-            
-        # 3. Analizar Palabras Clave (Triggers)
+        
+        # 2. Elegir personalidad (consistente por dispositivo)
+        if not hasattr(self, 'kick_personalities'):
+            self.kick_personalities = {}
+        if serial not in self.kick_personalities:
+            self.kick_personalities[serial] = random.choice(["Fan", "Troll", "Spammer"])
+        perfil = self.kick_personalities[serial]
+        self.log_msg(f" [{serial[-4:]}] Chat Engine ({perfil})...", "info")
+        
+        # 3. Analizar palabras clave del chat y elegir respuesta
         comment = ""
         if "hora" in chat_text or "time" in chat_text:
-            if perfil == "Fan": comment = "que buena hora para un stream!"
-            elif perfil == "Troll": comment = "ya es tarde, vete a dormir zzz"
-            else: comment = "time is money !drop"
-        elif "manco" in chat_text or "noob" in chat_text or "malo" in chat_text or "fail" in chat_text:
-            if perfil == "Fan": comment = "no le hagas caso a los haters, juegas bien bro!"
-            elif perfil == "Troll": comment = "literalmente el peor jugador que he visto jajaja"
-            else: comment = "F en el chat"
-        elif "hola" in chat_text or "saludos" in chat_text or "hi chat" in chat_text:
-            if perfil == "Fan": comment = "Hola chat!! un abrazo a todos"
-            elif perfil == "Troll": comment = "nadie te saludo xd"
-            else: comment = "hola !discord"
+            comment = {"Fan": "que buena hora para un stream!", "Troll": "ya es tarde, vete a dormir zzz", "Spammer": "time is money !drop"}.get(perfil, "")
+        elif "manco" in chat_text or "noob" in chat_text or "fail" in chat_text:
+            comment = {"Fan": "no le hagas caso, juegas bien bro!", "Troll": "literalmente el peor jugador jajaja", "Spammer": "F en el chat"}.get(perfil, "")
+        elif "hola" in chat_text or "saludos" in chat_text:
+            comment = {"Fan": "Hola chat!! un abrazo a todos", "Troll": "nadie te saludo xd", "Spammer": "hola !discord"}.get(perfil, "")
         elif "juego" in chat_text or "game" in chat_text:
-            if perfil == "Fan": comment = "este juego es una obra maestra"
-            elif perfil == "Troll": comment = "juego muerto (dead game)"
-            else: comment = "!game"
-            
-        # 4. Fallback: Si no hay palabras clave, lanzar comentario genérico
+            comment = {"Fan": "este juego es una obra maestra", "Troll": "juego muerto (dead game)", "Spammer": "!game"}.get(perfil, "")
+        
+        # 4. Fallback: comentario generico
         if not comment:
-            if perfil == "Fan":
-                comments = ["W stream", "bro you are insane", "love this", "🔥", "best streamer ever", "let's gooo", "huge W", "se prendió esto"]
-            elif perfil == "Troll":
-                comments = ["L", "boring af", "skill issue", "go next", "cringe", "zzz", "L stream", "mucho texto"]
-            else: # Spammer
-                comments = ["!drop", "!discord", "!points", "💯💯💯", "👀", "!socials", "kick.com"]
-            comment = random.choice(comments)
-            
-        self.log_msg(f"💬 [{serial[-4:]}] Respondiendo: '{comment}'", "info")
+            pools = {
+                "Fan": ["W stream", "bro you are insane", "love this", "best streamer ever", "lets gooo", "huge W"],
+                "Troll": ["L", "boring af", "skill issue", "go next", "cringe", "zzz"],
+                "Spammer": ["!drop", "!discord", "!points", "!socials"]
+            }
+            comment = random.choice(pools.get(perfil, ["gg"]))
         
-        # 5. Enviar mensaje
-        click_chat = self.find_and_click_by_text(serial, ["send a message", "enviar mensaje", "chat"])
-        if not click_chat:
-            self.adb.run_command(["shell", "input", "tap", "200", "750"], serial)
-            self.adb.run_command(["shell", "input", "tap", "200", "1250"], serial)
-        time.sleep(2)
+        self.log_msg(f" [{serial[-4:]}] Enviando: '{comment}'", "info")
         
-        for char in comment:
-            self.adb.run_command(["shell", "input", "text", char], serial)
-            time.sleep(0.1)
-        time.sleep(1)
-        
-        self.adb.run_command(["shell", "input", "keyevent", "66"], serial) # ENTER key
-        time.sleep(1)
-        self.adb.run_command(["shell", "input", "keyevent", "4"], serial) # Ocultar teclado
-        self.log_msg(f"✅ Comentario enviado con éxito.", "success")
+        # 5. Inyectar el comentario usando el mismo motor probado
+        # Temporalmente sobreescribimos el mensaje aleatorio con el elegido
+        original_get = self.get_random_kick_message
+        self.get_random_kick_message = lambda: comment
+        try:
+            self.interact_kick_stream(serial)
+        finally:
+            self.get_random_kick_message = original_get
 
     def _continuous_kick_chat_loop(self):
         import time
