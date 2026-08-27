@@ -744,10 +744,11 @@ class MarketingeoApp(ctk.CTk):
         self.update_timer()
         self.update_traffic()
         self._check_updates()
-        if getattr(self, "app_mode", "music") == "music":
-            threading.Thread(target=self.media_bot_loop, daemon=True).start()
-            threading.Thread(target=self.media_rotator_loop, daemon=True).start()
-            threading.Thread(target=self.watchdog_ghost_loop, daemon=True).start()
+        if True:
+            pass
+            
+            
+            
 
     def toggle_compact(self):
         """Alterna entre modo completo y modo bolsillo (solo controles)."""
@@ -914,38 +915,17 @@ class MarketingeoApp(ctk.CTk):
         # left controls
         frame = ctk.CTkScrollableFrame(self.tab_ctrl)
         frame.grid(row=1, column=0, pady=10, padx=10, sticky="nsew")
-
-        ctk.CTkLabel(frame, text="⏱️ Dinámica de Rotación", font=("Arial", 14, "bold")).pack(pady=5)
         
-        self.network_rot_switch = ctk.CTkSwitch(frame, text="⚠️ Habilitar Rotación de Internet por Lotes (Obsoleto)", variable=self.network_rotation_enabled, text_color="#F59E0B", font=("Arial", 11, "bold"))
-        self.network_rot_switch.pack(pady=(0, 10))
+        ctk.CTkLabel(frame, text="🔒 Configuración de Red (Proxys)", font=("Arial", 16, "bold")).pack(pady=5)
         
-        ctk.CTkLabel(frame, text="Dispositivos Encendidos a la vez:", font=("Arial", 11)).pack()
-        self.batch_entry = ctk.CTkEntry(frame, placeholder_text="Ej: 10")
-        self.batch_entry.pack(pady=2, padx=10, fill="x")
-        self.batch_entry.insert(0, "10")
-        
-        ctk.CTkLabel(frame, text="Minutos activos antes de apagar WiFi y Rotar:", font=("Arial", 11)).pack(pady=(10,0))
-        self.mins_entry = ctk.CTkEntry(frame, placeholder_text="Ej: 360 para 6 horas")
-        self.mins_entry.pack(pady=2, padx=10, fill="x")
-        self.mins_entry.insert(0, "360")
-        
-        checks_frame = ctk.CTkFrame(frame, fg_color="transparent")
-        checks_frame.pack(pady=10)
-        self.infinite_var = ctk.BooleanVar(value=True)
-        ctk.CTkCheckBox(checks_frame, text="🔄 Rotar Infinito", variable=self.infinite_var).pack(side="left", padx=5)
-        self.stealth_var = ctk.BooleanVar(value=True)
-        ctk.CTkCheckBox(checks_frame, text="🕵️ Modo Sigilo (Goteo)", variable=self.stealth_var).pack(side="left", padx=5)
-        
-        # Proxies
         prx_frame = ctk.CTkFrame(frame, fg_color="transparent")
         prx_frame.pack(fill="x", pady=(10, 5))
         
         self.no_proxy_var = ctk.BooleanVar(value=False)
-        ctk.CTkCheckBox(prx_frame, text="🔌 Modo Sin Proxy (Internet del PC)", variable=self.no_proxy_var, font=("Arial", 11, "bold"), text_color="#10B981").pack(side="left", padx=10)
+        ctk.CTkCheckBox(prx_frame, text="🛡️ Modo Sin Proxy (Internet del PC)", variable=self.no_proxy_var, font=("Arial", 12, "bold"), text_color="#10B981").pack(side="left", padx=10)
         
         self.bot_only_var = ctk.BooleanVar(value=False)
-        ctk.CTkCheckBox(prx_frame, text="📡 Modo Solo Bot (WiFi Celular)", variable=self.bot_only_var, font=("Arial", 11, "bold"), text_color="#FCD34D").pack(side="left", padx=5)
+        ctk.CTkCheckBox(prx_frame, text="📶 Modo Solo Bot (WiFi Celular)", variable=self.bot_only_var, font=("Arial", 12, "bold"), text_color="#FCD34D").pack(side="left", padx=5)
         
         self.test_btn = ctk.CTkButton(prx_frame, text="🧪 Probador", width=80, fg_color="#F59E0B", command=self.test_proxies)
         self.test_btn.pack(side="right", padx=10)
@@ -954,107 +934,52 @@ class MarketingeoApp(ctk.CTk):
         self.proxy_textbox.pack(pady=5, padx=10, fill="x")
         self.proxy_textbox.insert("1.0", "# IP:PORT:USER:PASS o similar\n")
         
-        # The Bot Humanoide was moved to build_traffic_tab
-        # Actions
-        ctk.CTkLabel(frame, text="⚙️ Controles de Mando", font=("Arial", 14, "bold")).pack(pady=(15, 5))
+        ctk.CTkLabel(frame, text="🎮 Controles Maestros", font=("Arial", 16, "bold")).pack(pady=(20, 5))
         
         scan_frame = ctk.CTkFrame(frame, fg_color="transparent")
         scan_frame.pack(fill="x", pady=5)
         
-        self.scan_btn = ctk.CTkButton(scan_frame, text="🔍 1. Escanear", command=self.scan_devices)
+        self.scan_btn = ctk.CTkButton(scan_frame, text="🔍 1. Escanear Dispositivos", command=self.scan_devices, font=("Arial", 14, "bold"), height=35)
         self.scan_btn.pack(side="left", padx=10, expand=True, fill="x")
-        self.bind_tooltip(self.scan_btn, "Actualiza la lista de dispositivos conectados y listos para trabajar.")
         
         self.reset_adb_btn = ctk.CTkButton(scan_frame, text="🔌 Reset USB", command=self.restart_adb_server, fg_color="#EF4444")
         self.reset_adb_btn.pack(side="right", padx=(0, 10), expand=True, fill="x")
-        self.bind_tooltip(self.reset_adb_btn, "PÁNICO: Reinicia el motor USB para revivir celulares invisibles sin reiniciar la PC.")
         
-        self.install_btn = ctk.CTkButton(frame, text="📥 2. Instalar PKG (Gnirehtet)", command=self.install_gnirehtet, fg_color="green")
-        self.install_btn.pack(pady=5, padx=10, fill="x")
-        self.bind_tooltip(self.install_btn, "Instala la app de enrutamiento en los celulares para que reciban internet.")
+        self.install_btn = ctk.CTkButton(frame, text="⚙️ 2. Instalar Motor de Red (Gnirehtet)", command=self.install_gnirehtet, fg_color="green", font=("Arial", 14, "bold"), height=35)
+        self.install_btn.pack(pady=10, padx=10, fill="x")
 
-        self.assign_btn = ctk.CTkButton(frame, text="🎯 ASIGNAR PROXYS MANUAL", command=self.assign_proxies, fg_color="#F59E0B", font=("Arial", 13, "bold"))
-        self.assign_btn.pack(pady=5, padx=10, fill="x")
-        self.bind_tooltip(self.assign_btn, "Aplica manualmente las IPs ingresadas a los celulares uno por uno.")
+        self.assign_btn = ctk.CTkButton(frame, text="🎯 ASIGNAR PROXYS A DISPOSITIVOS", command=self.assign_proxies, fg_color="#F59E0B", font=("Arial", 14, "bold"), height=35)
+        self.assign_btn.pack(pady=10, padx=10, fill="x")
 
-        self.inventory_btn = ctk.CTkButton(frame, text="📦 VER MAPA FÍSICO (HUBs)", command=self.show_inventory, fg_color="#F59E0B", font=("Arial", 13, "bold"))
-        self.inventory_btn.pack(pady=5, padx=10, fill="x")
-        self.bind_tooltip(self.inventory_btn, "Muestra el puerto USB exacto de cada celular para hallar los desconectados.")
-
-        self.start_btn = ctk.CTkButton(frame, text="🚀 3. CREAR TÚNEL CENTRAL", command=self.attempt_start, height=40)
-        self.start_btn.pack(pady=10, padx=10, fill="x")
-        self.bind_tooltip(self.start_btn, "INICIA LA MAGIA: Pasa internet a todos los celulares e inyecta música/video.")
+        self.start_btn = ctk.CTkButton(frame, text="▶️ 3. CREAR TÚNEL CENTRAL (INTERNET)", command=self.attempt_start, height=45, font=("Arial", 15, "bold"))
+        self.start_btn.pack(pady=20, padx=10, fill="x")
         
-        self.pause_btn = ctk.CTkButton(frame, text="⏸️ PAUSAR (Editar Num/Hora)", command=self.toggle_pause, state="disabled", fg_color="#F59E0B")
-        self.pause_btn.pack(pady=5, padx=10, fill="x")
-        self.bind_tooltip(self.pause_btn, "Pausa la rotación y la música temporalmente sin apagar el internet.")
-
         self.repair_btn = ctk.CTkButton(frame, text="🔧 REPARAR CAÍDOS", command=self.repair_failed_devices, state="disabled", fg_color="#F59E0B", font=("Arial", 12, "bold"))
         self.repair_btn.pack(pady=5, padx=10, fill="x")
-        self.bind_tooltip(self.repair_btn, "Intenta reconectar y estabilizar aquellos dispositivos que tengan falla roja.")
         
-        self.clean_btn = ctk.CTkButton(frame, text="🧹 PANIC: LIMPIEZA TOTAL (40 Disp)", command=self.panic_clean, fg_color="darkred")
-        self.clean_btn.pack(pady=20, padx=10, fill="x")
-        self.bind_tooltip(self.clean_btn, "Detiene todo, corta el internet y borra el caché de apps en TODOS los celulares.")
-
-        # Instaladores masivos (Movidos desde Extras) - Diseño vertical scrollable
-        inst_frame = ctk.CTkFrame(frame, fg_color="#1E293B", corner_radius=8)
-        inst_frame.pack(fill="x", padx=10, pady=(10, 20))
-        ctk.CTkLabel(inst_frame, text="📦 Gestión de Aplicaciones (APK)", font=("Arial", 14, "bold"), text_color="#F59E0B").pack(pady=5)
-        
-        # Contenedor con scroll para las aplicaciones
-        scroll_apps = ctk.CTkScrollableFrame(inst_frame, height=190, fg_color="transparent")
-        scroll_apps.pack(fill="x", padx=5, pady=5)
-        
-        app_list = [
-            ("AWA", "awa.apk", "fm.awa.app", "#D946EF"),
-            ("Pandora", "pandora.apk", "com.pandora.android", "#D97706"),
-            ("Audiomack", "audiomack.apk", "com.audiomack", "#F59E0B"),
-            ("Apple Music", "applemusic.apk", "com.apple.android.music", "#EF4444"),
-            ("Tidal", "tidal.apk", "com.aspiro.tidal", "#B45309"),
-            ("Amazon Music", "amazonmusic.apk", "com.amazon.mp3", "#FF9900"),
-            ("Instagram", "instagram.apk", "com.instagram.android", "#E1306C"),
-            ("Kick", "kick.apk", "com.kick.mobile", "#53FC18")
-        ]
-        
-        for name, apk, pkg, color in app_list:
-            row_frame = ctk.CTkFrame(scroll_apps, fg_color="transparent")
-            row_frame.pack(fill="x", pady=4, padx=5)
-            
-            # Nombre de la App
-            ctk.CTkLabel(row_frame, text=name, font=("Arial", 12, "bold"), width=95, anchor="w").pack(side="left", padx=5)
-            
-            # Botón Instalar
-            btn_install = ctk.CTkButton(row_frame, text="📲 Instalar", fg_color=color, width=95, height=26,
-                                        command=lambda a=apk, n=name: self.install_custom_apk(a, n))
-            btn_install.pack(side="left", padx=5)
-            
-            # Botón Desinstalar
-            btn_uninstall = ctk.CTkButton(row_frame, text="❌ Quitar", fg_color="#991B1B", hover_color="#7F1D1D", width=80, height=26,
-                                          command=lambda p=pkg, n=name: self.uninstall_custom_apk(p, n))
-            btn_uninstall.pack(side="left", padx=5)
+        self.clean_btn = ctk.CTkButton(frame, text="💀 PANIC: CERRAR TODO", command=self.panic_clean, fg_color="darkred")
+        self.clean_btn.pack(pady=10, padx=10, fill="x")
 
         # Right Cards
         self._right_container = ctk.CTkFrame(self.tab_ctrl, fg_color="transparent")
         self._right_container.grid(row=1, column=1, pady=10, padx=10, sticky="nsew")
 
-        btn = ctk.CTkButton(self._right_container, text="🩺 Obtener Diagnóstico Global", height=30, command=self.run_global_report, fg_color="#059669")
+        btn = ctk.CTkButton(self._right_container, text="📊 Obtener Diagnóstico Global", height=30, command=self.run_global_report, fg_color="#059669")
         btn.pack(fill="x", pady=(0, 5))
 
-        # Device selection toolbar
         sel_frame = ctk.CTkFrame(self._right_container, fg_color="#1A1A2E", corner_radius=8)
         sel_frame.pack(fill="x", pady=(0, 5))
-        ctk.CTkButton(sel_frame, text="☑️ Todos", width=90, height=28, command=self.select_all_devices, fg_color="#10B981").pack(side="left", padx=5, pady=5)
+        ctk.CTkButton(sel_frame, text="☑ Todos", width=90, height=28, command=self.select_all_devices, fg_color="#10B981").pack(side="left", padx=5, pady=5)
         ctk.CTkButton(sel_frame, text="☐ Ninguno", width=90, height=28, command=self.deselect_all_devices, fg_color="#6B7280").pack(side="left", padx=5, pady=5)
-        self.selection_count_lbl = ctk.CTkLabel(sel_frame, text="0 de 0 seleccionados", font=("Arial", 11, "bold"), text_color="#60A5FA")
+        self.selection_count_lbl = ctk.CTkLabel(sel_frame, text="0 de 0 seleccionados", font=("Arial", 12, "bold"), text_color="#60A5FA")
         self.selection_count_lbl.pack(side="right", padx=10, pady=5)
 
-        self.dev_frame = ctk.CTkScrollableFrame(self._right_container, label_text="Tarjetas de Dispositivos 📱")
+        self.dev_frame = ctk.CTkScrollableFrame(self._right_container, label_text="📱 Tarjetas de Dispositivos")
         self.dev_frame.pack(fill="both", expand=True)
         self.device_widgets = []
         
         # Log
-        self.log_frame = ctk.CTkTextbox(self.tab_ctrl, height=100)
+        self.log_frame = ctk.CTkTextbox(self.tab_ctrl, height=120)
         self.log_frame.grid(row=2, column=0, columnspan=2, pady=10, padx=10, sticky="ew")
         self.log_frame.configure(state="disabled")
 
@@ -2755,112 +2680,66 @@ class MarketingeoApp(ctk.CTk):
         self.tab_accounts.grid_columnconfigure(0, weight=1)
         self.tab_accounts.grid_columnconfigure(1, weight=1)
         self.tab_accounts.grid_rowconfigure(0, weight=1)
-
-        # Panel Izquierdo: Controles
-        left_frame = ctk.CTkScrollableFrame(self.tab_accounts, fg_color="#1E293B", corner_radius=8)
-        left_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
-
-        ctk.CTkLabel(left_frame, text="👤 Creador de Cuentas Automático", font=("Arial", 16, "bold"), text_color="#F59E0B").pack(pady=10)
-
-        # Selector Múltiple de Celulares
-        ctk.CTkLabel(left_frame, text="📱 Seleccionar Celular(es):", font=("Arial", 12)).pack(pady=(10, 2))
         
-        self.acc_devices_frame = ctk.CTkScrollableFrame(left_frame, width=250, height=120)
-        self.acc_devices_frame.pack(pady=5, fill="x", padx=30)
-        self.acc_device_vars = {} # serial -> ctk.BooleanVar
+        # Panel izquierdo (Controles y Logs)
+        left_frame = ctk.CTkFrame(self.tab_accounts, fg_color="transparent")
+        left_frame.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
         
-        btn_frame = ctk.CTkFrame(left_frame, fg_color="transparent")
-        btn_frame.pack(fill="x", padx=30, pady=2)
+        ctk.CTkLabel(left_frame, text="🤖 Creador de Cuentas (Redes Sociales)", font=("Arial", 20, "bold"), text_color="#3B82F6").pack(pady=(0, 20))
         
-        def _sel_all():
-            for var in self.acc_device_vars.values(): var.set(True)
-        def _sel_none():
-            for var in self.acc_device_vars.values(): var.set(False)
-            
-        ctk.CTkButton(btn_frame, text="Todos", width=120, command=_sel_all).pack(side="left")
-        ctk.CTkButton(btn_frame, text="Ninguno", width=120, command=_sel_none).pack(side="right")
+        # Selector de Red
+        self.acc_network_var = ctk.StringVar(value="Kick")
+        net_frame = ctk.CTkFrame(left_frame, fg_color="transparent")
+        net_frame.pack(fill="x", pady=5)
+        ctk.CTkLabel(net_frame, text="Red Social:", font=("Arial", 12, "bold")).pack(side="left", padx=10)
+        self.acc_network_combo = ctk.CTkOptionMenu(net_frame, values=["Kick", "Instagram"], variable=self.acc_network_var, width=150)
+        self.acc_network_combo.pack(side="left", padx=5)
 
-        def _open_scrcpy_accounts():
-            selected = [s for s, v in self.acc_device_vars.items() if v.get()]
-            if not selected:
-                messagebox.showwarning("Aviso", "Selecciona al menos un celular.")
-                return
-            for serial in selected:
-                self.launch_scrcpy(serial)
-
-        ctk.CTkButton(left_frame, text="👀 Ver Pantallas (Scrcpy)", width=250, fg_color="#10B981", text_color="white", command=_open_scrcpy_accounts).pack(pady=5)
-
-
-        # Prefijo del correo
-        ctk.CTkLabel(left_frame, text="📧 Prefijo del Correo (Aleatorio):", font=("Arial", 11)).pack(pady=(10, 2))
-        self.acc_email_prefix_entry = ctk.CTkEntry(left_frame, placeholder_text="Ej: user.farm", width=250)
-        self.acc_email_prefix_entry.pack(pady=2)
-        self.acc_email_prefix_entry.insert(0, "andro.bot")
-
-        ctk.CTkLabel(left_frame, text="🌐 Dominio del Correo:", font=("Arial", 11)).pack(pady=(5, 2))
-        self.acc_email_domain_entry = ctk.CTkEntry(left_frame, placeholder_text="gmail.com", width=250)
-        self.acc_email_domain_entry.pack(pady=2)
+        # Formulario
+        form_frame = ctk.CTkFrame(left_frame, fg_color="#1E293B", corner_radius=12)
+        form_frame.pack(fill="x", pady=10)
+        
+        ctk.CTkLabel(form_frame, text="Prefijo de Correo:", font=("Arial", 11, "bold")).pack(anchor="w", padx=20, pady=(15, 0))
+        self.acc_email_prefix_entry = ctk.CTkEntry(form_frame, placeholder_text="Ej: juan.perez")
+        self.acc_email_prefix_entry.pack(fill="x", padx=20, pady=5)
+        self.acc_email_prefix_entry.insert(0, "user")
+        
+        ctk.CTkLabel(form_frame, text="Dominio (@):", font=("Arial", 11, "bold")).pack(anchor="w", padx=20, pady=(5, 0))
+        self.acc_email_domain_entry = ctk.CTkEntry(form_frame, placeholder_text="Ej: gmail.com")
+        self.acc_email_domain_entry.pack(fill="x", padx=20, pady=5)
         self.acc_email_domain_entry.insert(0, "gmail.com")
-
-        # Contraseña
-        ctk.CTkLabel(left_frame, text="🔑 Contraseña Inicial:", font=("Arial", 11)).pack(pady=(10, 2))
-        self.acc_password_entry = ctk.CTkEntry(left_frame, placeholder_text="Ej: Androide10", width=250)
-        self.acc_password_entry.pack(pady=2)
-        self.acc_password_entry.insert(0, "Androide10")
-
-        # Artistas a seguir
-        ctk.CTkLabel(left_frame, text="🎸 Artistas a seguir (separados por coma):", font=("Arial", 11)).pack(pady=(10, 2))
-        self.acc_artists_entry = ctk.CTkTextbox(left_frame, width=250, height=60)
-        self.acc_artists_entry.pack(pady=2)
-        self.acc_artists_entry.insert("1.0", "Bad Bunny, Feid, Karol G, Drake")
-
+        
+        ctk.CTkLabel(form_frame, text="Contraseña Base:", font=("Arial", 11, "bold")).pack(anchor="w", padx=20, pady=(5, 0))
+        self.acc_password_entry = ctk.CTkEntry(form_frame, placeholder_text="Mínimo 8 caracteres (Letras y Números)")
+        self.acc_password_entry.pack(fill="x", padx=20, pady=(5, 20))
+        self.acc_password_entry.insert(0, "Pass1234!")
+        
         # Botones de Acción
-        ctk.CTkLabel(left_frame, text="⚡ Controles de Automatización", font=("Arial", 12, "bold")).pack(pady=(15, 5))
+        btn_frame = ctk.CTkFrame(left_frame, fg_color="transparent")
+        btn_frame.pack(fill="x", pady=15)
         
-        self.btn_scan_acc = ctk.CTkButton(left_frame, text="🔍 0. Escanear Sesiones (Pre-Check)", fg_color="#3B82F6", hover_color="#2563EB", command=self.start_spotify_scan_sessions, height=35)
-        self.btn_scan_acc.pack(pady=5, fill="x", padx=30)
+        self.btn_scan_acc = ctk.CTkButton(btn_frame, text="🔍 1. Refrescar Lista USB", fg_color="#3B82F6", hover_color="#2563EB", command=self.update_account_creator_devices, height=35)
+        self.btn_scan_acc.pack(fill="x", pady=5)
         
-        self.btn_start_acc = ctk.CTkButton(left_frame, text="🌐 1. Abrir Registro Chrome (Visible)", fg_color="#10B981", hover_color="#059669", command=self.start_spotify_account_creation, height=35)
-        self.btn_start_acc.pack(pady=5, fill="x", padx=30)
+        self.btn_create_acc = ctk.CTkButton(btn_frame, text="▶️ 2. Iniciar Creación de Cuentas (Solo Kick por ahora)", fg_color="#10B981", hover_color="#059669", command=self.start_kick_google_login, height=45, font=("Arial", 13, "bold"))
+        self.btn_create_acc.pack(fill="x", pady=5)
         
-        self.btn_login_acc = ctk.CTkButton(left_frame, text="🚀 2. Iniciar Sesión App (Auto A Ciegas)", fg_color="#F59E0B", hover_color="#D97706", command=self.start_spotify_login, height=35)
-        self.btn_login_acc.pack(pady=5, fill="x", padx=30)
+        # Log del creador
+        ctk.CTkLabel(left_frame, text="Registro de Actividad:", font=("Arial", 12, "bold"), text_color="#9CA3AF").pack(anchor="w", pady=(10, 5))
+        self.acc_log_box = ctk.CTkTextbox(left_frame, height=180, font=("Consolas", 11))
+        self.acc_log_box.pack(fill="both", expand=True)
+        self.acc_log_box.insert("1.0", "Esperando ordenes...\n")
         
-        self.acc_slow_mode_var = ctk.BooleanVar(value=False)
-        self.chk_slow_mode = ctk.CTkCheckBox(left_frame, text="🐢 Modo Lento (Para celulares lentos)", variable=self.acc_slow_mode_var)
-        self.chk_slow_mode.pack(pady=5, padx=30, anchor="w")
+        # Panel derecho (Lista de dispositivos a usar)
+        right_frame = ctk.CTkFrame(self.tab_accounts, fg_color="#0F172A", corner_radius=12)
+        right_frame.grid(row=0, column=1, sticky="nsew", padx=20, pady=20)
         
-        self.btn_google_login = ctk.CTkButton(left_frame, text="🤖 3. Login Automático (Vía Google)", fg_color="#10B981", hover_color="#059669", command=self.start_spotify_google_login, height=35)
-        self.btn_google_login.pack(pady=5, fill="x", padx=30)
+        ctk.CTkLabel(right_frame, text="📱 Dispositivos para Creación", font=("Arial", 16, "bold")).pack(pady=15)
         
-        self.btn_signup_acc = ctk.CTkButton(left_frame, text="✨ 4. Crear Cuenta en App (A Ciegas)", fg_color="#D946EF", hover_color="#C026D3", command=self.start_spotify_app_signup, height=35)
-        self.btn_signup_acc.pack(pady=5, fill="x", padx=30)
-        self.btn_follow_artists = ctk.CTkButton(left_frame, text="🎨 5. Seguir Artistas (Opcional)", fg_color="#EC4899", hover_color="#DB2777", command=self.start_spotify_follow_artists, height=35)
-        self.btn_follow_artists.pack(pady=5, fill="x", padx=30)
+        self.acc_devices_scroll = ctk.CTkScrollableFrame(right_frame, fg_color="transparent")
+        self.acc_devices_scroll.pack(fill="both", expand=True, padx=10, pady=10)
         
-        self.btn_logout_acc = ctk.CTkButton(left_frame, text="🚪 6. Cerrar Sesión (A Ciegas)", fg_color="#8B5CF6", hover_color="#7C3AED", command=self.start_spotify_logout, height=35)
-        self.btn_logout_acc.pack(pady=5, fill="x", padx=30)
-        
-        self.btn_stop_signup = ctk.CTkButton(left_frame, text="🛑 Detener Proceso", fg_color="#EF4444", hover_color="#DC2626", command=self.stop_spotify_signup, height=35, state="disabled")
-        self.btn_stop_signup.pack(pady=5, fill="x", padx=30)
-        self.stop_signup = False
-
-        
-        # Redundancias por si falla uiautomator
-        manual_frame = ctk.CTkFrame(left_frame, fg_color="transparent")
-        manual_frame.pack(pady=10)
-        ctk.CTkButton(manual_frame, text="📧 Escribir Correo", width=120, fg_color="#F59E0B", command=self.manual_type_email).pack(side="left", padx=5)
-        ctk.CTkButton(manual_frame, text="🔑 Escribir Clave", width=120, fg_color="#F59E0B", command=self.manual_type_password).pack(side="left", padx=5)
-
-        # Panel Derecho: Logs
-        right_frame = ctk.CTkFrame(self.tab_accounts, fg_color="#0F172A", corner_radius=8)
-        right_frame.grid(row=0, column=1, sticky="nsew", padx=10, pady=10)
-        
-        ctk.CTkLabel(right_frame, text="📋 Registro del Proceso en Vivo", font=("Arial", 14, "bold"), text_color="#FCD34D").pack(pady=10)
-        self.acc_log_box = ctk.CTkTextbox(right_frame, height=500)
-        self.acc_log_box.pack(padx=10, fill="both", expand=True, pady=5)
-        
-        self.update_account_creator_devices()
+        self.acc_device_checkboxes = {}
 
     def update_account_creator_devices(self):
         if not hasattr(self, 'acc_devices_frame'): return
