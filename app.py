@@ -912,6 +912,49 @@ class MarketingeoApp(ctk.CTk):
 
 
 
+    def install_custom_apk(self):
+        """Abre un dialogo para buscar un APK y lo instala en todos los dispositivos."""
+        if not hasattr(self, 'engine') or not getattr(self.engine, 'active_devices', []):
+            self.log_msg(" [Error] No hay dispositivos activos en el panel.", "error")
+            return
+            
+        import tkinter.filedialog as fd
+        import threading
+        
+        filepath = fd.askopenfilename(title="Seleccionar APK a Instalar (Kick, Instagram...)", filetypes=[("APK files", "*.apk")])
+        if not filepath:
+            return
+            
+        filename = os.path.basename(filepath)
+        self.log_msg(f" Preparando para instalar: {filename}...", "info")
+        
+        if hasattr(self, 'install_apk_btn'):
+            self.install_apk_btn.configure(text=" ⏳ Instalando...", state="disabled", fg_color="#F59E0B")
+            
+        def _installer():
+            from concurrent.futures import ThreadPoolExecutor
+            
+            def install_on_dev(dev):
+                s = dev['serial']
+                self.log_msg(f" [{s[-4:]}] Instalando {filename}...", "info")
+                # -r: replace existing, -g: grant all runtime permissions
+                out, err, code = self.adb.run_command(["install", "-r", "-g", filepath], s)
+                if code == 0 and "Success" in (out or ""):
+                    self.log_msg(f" [{s[-4:]}] ✅ {filename} Instalado OK.", "success")
+                else:
+                    self.log_msg(f" [{s[-4:]}] ❌ Error instalando: {err or out}", "error")
+                    
+            # Use batch of 2 to not overwhelm ADB bridge
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                executor.map(install_on_dev, self.engine.active_devices)
+                
+            self.log_msg(f" Instalación masiva de {filename} Terminada.", "success")
+            
+            if hasattr(self, 'install_apk_btn'):
+                self.after(0, lambda: self.install_apk_btn.configure(text=" 📦 Instalar APK Externa a Todos", state="normal", fg_color="#6366F1"))
+                
+        threading.Thread(target=_installer, daemon=True).start()
+
     def build_control_tab(self):
         self.tab_ctrl.grid_columnconfigure(0, weight=1)
         self.tab_ctrl.grid_columnconfigure(1, weight=1)
