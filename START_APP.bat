@@ -8,6 +8,27 @@ exit /b
 
 :main
 echo =======================================
+
+:: AUTO-CONFIGURAR GIT PARA MARKETINGEO
+where git >nul 2>&1
+if not errorlevel 1 (
+    git remote get-url origin >nul 2>&1
+    if errorlevel 1 (
+        echo [!] Inicializando Git para permitir actualizaciones online...
+        if exist ".git" rmdir /s /q ".git"
+        git init
+        git remote add origin https://github.com/mrpoeta2018/marketingeo.git
+        git fetch origin
+        git branch -M master
+        git checkout -f master
+        echo [OK] Git configurado correctamente.
+        echo(
+    ) else (
+        echo [*] Buscando actualizaciones en Marketingeo...
+        git pull origin master
+        echo [OK] Base de datos de Marketingeo actualizada.
+    )
+)
 echo Iniciando Sistema... Por favor, Espera.
 echo =======================================
 
