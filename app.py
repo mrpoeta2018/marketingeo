@@ -2606,8 +2606,8 @@ class MarketingeoApp(ctk.CTk):
                         self.adb.run_command(["shell", "input", "tap", str(sx), str(sy)], s)
                         break
         
-        # 7. Bajar teclado
-        self.adb.run_command(["shell", "input", "keyevent", "4"], s)
+        # 7. Bajar teclado (ESCAPE no BACK, para no minimizar el video de Kick)
+        self.adb.run_command(["shell", "input", "keyevent", "111"], s)
         self.log_msg(f" [{s[-4:]}] Mensaje enviado.", "info")
 
     def inject_kick(self):
