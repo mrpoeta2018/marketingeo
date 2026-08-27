@@ -457,7 +457,6 @@ class SetupProgressWindow(ctk.CTkToplevel):
 
     def enable_master_buttons(self):
         self.master.start_btn.configure(state="disabled") # starts stays off while running
-        self.master.pause_btn.configure(state="normal")
         self.master.scan_btn.configure(state="normal") 
         self.master.clean_btn.configure(state="normal")
 
@@ -503,12 +502,11 @@ class SetupProgressWindow(ctk.CTkToplevel):
         self.progress.set(0.6)
         
         # Start rotation on main thread via after
-        playlists_raw = self.master.playlist_textbox.get("1.0", "end").strip().split('\n')
-        playlists = [p.strip() for p in playlists_raw if p.strip()]
+        playlists = []
         
         self.after(0, lambda: self.master.engine.start_rotation(
             self.devices, self.proxies, self.b_size, self.mins, 
-            self.master.infinite_var.get(), self.master.stealth_var.get(), playlists, tunnel_disabled=self.tunnel_disabled
+            True, False, playlists, tunnel_disabled=self.tunnel_disabled
         ))
         
         self.progress.set(0.9)
@@ -1576,12 +1574,7 @@ class MarketingeoApp(ctk.CTk):
         threading.Thread(target=_installer, daemon=True).start()
 
     def parse_inputs(self):
-        try:
-            if hasattr(self, 'network_rotation_enabled') and not self.network_rotation_enabled.get():
-                return 9999, 999999.0
-            b_size = int(self.batch_entry.get())
-            mins = float(self.mins_entry.get())
-            return b_size, mins
+        return 9999, 999999.0
         except ValueError:
             messagebox.showerror("Error", "Lotes y minutos numéricos.")
             return None, None
@@ -1646,8 +1639,6 @@ class MarketingeoApp(ctk.CTk):
             self.log_msg(f"▶️ Iniciando Secuencia con {len(devices)} dispositivos seleccionados...")
         SetupProgressWindow(self, devices, proxies, b_size, mins, tunnel_disabled=tunnel_disabled)
         self.no_proxy_strikes = 0
-        self.batch_entry.configure(state="disabled")
-        self.mins_entry.configure(state="disabled")
 
     def repair_failed_devices(self):
         """Find devices with failed health and attempt reconnection."""
