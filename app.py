@@ -2476,7 +2476,8 @@ class MarketingeoApp(ctk.CTk):
         import threading
         for dev in self.engine.active_devices:
             s = dev['serial']
-            threading.Thread(target=self._kick_chat_engine, args=(s,), daemon=True).start()
+            # Llamada directa a interact - ignora el checkbox de auto-bot
+            threading.Thread(target=self.interact_kick_stream, args=(s,), daemon=True).start()
 
     def get_random_kick_message(self):
         import random
