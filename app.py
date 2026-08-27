@@ -764,7 +764,7 @@ class MarketingeoApp(ctk.CTk):
             self.geometry("1200x900")
             self.compact_btn.configure(text="📏 Bolsillo")
             self._right_container.grid(row=1, column=1, pady=10, padx=10, sticky="nsew")
-            self.log_frame.grid(row=2, column=0, columnspan=2, pady=10, padx=10, sticky="ew")
+            self.log_frame.pack(padx=20, pady=(0, 10), fill="x")
             self.proxy_textbox.configure(height=120)
             self.tab_ctrl.grid_columnconfigure(1, weight=1)
         else:
@@ -774,7 +774,7 @@ class MarketingeoApp(ctk.CTk):
             self.geometry("480x700")
             self.compact_btn.configure(text="📐 Completo")
             self._right_container.grid_remove()
-            self.log_frame.grid_remove()
+            self.log_frame.pack_forget()
             self.proxy_textbox.configure(height=50)
             self.tab_ctrl.grid_columnconfigure(1, weight=0)
 
