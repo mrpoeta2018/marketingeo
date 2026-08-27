@@ -2646,6 +2646,16 @@ class MarketingeoApp(ctk.CTk):
                     if not getattr(self, '_cascade_running', False): return
                     s = dev['serial']
                     
+                    # --- GUARDIAN DE ESTADO ---
+                    self.adb.run_command(["shell", "input", "keyevent", "KEYCODE_WAKEUP"], s)
+                    out, _, _ = self.adb.run_command(["shell", "dumpsys", "window", "windows"], s)
+                    if out and "com.kick.mobile" not in out:
+                        self.log_msg(f" [{s[-4:]}] Kick no esta en pantalla. Auto-Reparando e inyectando URL...", "warn")
+                        url = self.kick_url_var.get().strip() or "https://kick.com"
+                        self.adb.run_command(["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", f"'{url}'", "com.kick.mobile"], s)
+                        time.sleep(12)
+                    # --------------------------
+                    
                     do_comments = getattr(self, 'kick_bot_type_comments', None) and self.kick_bot_type_comments.get()
                     do_emojis = getattr(self, 'kick_bot_type_emojis', None) and self.kick_bot_type_emojis.get()
                     
