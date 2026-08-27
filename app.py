@@ -2766,11 +2766,8 @@ class MarketingeoApp(ctk.CTk):
             if chat_x is not None:
                 break
             else:
-                if intento < 2:
-                    self.log_msg(f" [{s[-4:]}] ⏳ Nada visible aun (intento {intento+1}/3). Esperando 10s...", "warn")
-                    time.sleep(10)
-                    self.adb.run_command(["shell", "input", "tap", str(width//2), str(height//2)], s)
-                    time.sleep(1)
+                if intento < 0: # Desactivado
+                    pass
                 else:
                     # Ultimo recurso: proporcional a la pantalla real
                     chat_x = int(width * 0.43)
@@ -2831,7 +2828,7 @@ class MarketingeoApp(ctk.CTk):
         
         chat_x, chat_y = None, None
         
-        for intento in range(3):
+        for intento in range(1): # Solo 1 intento para no perder tiempo si el video lo bloquea
             root = getattr(self, 'pull_and_parse', lambda x: None)(s)
             if root is not None:
                 lower_third = height * 0.6
@@ -2852,8 +2849,7 @@ class MarketingeoApp(ctk.CTk):
             if chat_y:
                 break
                 
-            self.log_msg(f" [{s[-4:]}]  Buscando ancla de chat... (Intento {intento+1}/3)", "warn")
-            time.sleep(3)
+            self.log_msg(f" [{s[-4:]}]  Buscando ancla de chat...", "warn")
             
         if not chat_y:
             self.log_msg(f" [{s[-4:]}] ⚠️ Scanner bloqueado por el video en vivo. Usando cálculo proporcional para Emojis.", "warn")
