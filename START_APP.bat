@@ -25,7 +25,7 @@ if not errorlevel 1 (
         echo(
     ) else (
         echo [*] Buscando actualizaciones en Marketingeo...
-        git pull origin master
+        :: git pull origin master (Desactivado por seguridad)
         echo [OK] Base de datos de Marketingeo actualizada.
     )
 )
