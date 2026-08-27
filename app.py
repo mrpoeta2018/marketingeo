@@ -2633,7 +2633,8 @@ class MarketingeoApp(ctk.CTk):
                 time.sleep(1)
                 
                 self.adb.run_command(["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", f"'{url}'", "com.kick.mobile"], s)
-                time.sleep(10) # Esperar a que cargue el stream
+                self.log_msg(f"[Kick] Esperando 20s a que cargue el stream...", "info")
+                time.sleep(20) # Esperar a que cargue el stream + chat
                 
                 # Interacción de Kick (Reglas y Chat)
                 self.interact_kick_stream(s)
