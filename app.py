@@ -2517,13 +2517,12 @@ class MarketingeoApp(ctk.CTk):
         self.adb.run_command(["shell", "input", "tap", str(width//2), str(height//2)], s)
         time.sleep(1.0)
         
-        # 2. Escanear pantalla buscando la caja 'Enviar mensaje'
+        # 2. Escanear pantalla buscando la caja
         root = getattr(self, 'pull_and_parse', lambda x: None)(s)
         chat_found = False
-        chat_x, chat_y = int(width * 0.3), int(height * 0.95) # Fallback
+        chat_x, chat_y = int(width * 0.3), int(height * 0.82) # Fallback ajustado por navbar de Kick
         
         if root is not None:
-            # Guardamos la radiografia para debug
             with open('kick_debug.txt', 'w', encoding='utf-8') as dbg:
                 for n in root.iter('node'):
                     t = n.get('text', '')
@@ -2534,19 +2533,27 @@ class MarketingeoApp(ctk.CTk):
             for n in root.iter("node"):
                 text_val = n.get("text", "").lower()
                 desc_val = n.get("content-desc", "").lower()
+                bounds = n.get("bounds", "")
                 
-                # Busqueda ESTRICTA para no confundir con otros botones de chat
-                if text_val == "enviar mensaje" or text_val == "send a message" or "enviar mensaje" in desc_val:
-                    bounds = n.get("bounds", "")
-                    if bounds:
-                        coords = [int(c) for c in bounds.replace("][", ",").replace("[", "").replace("]", "").split(",")]
-                        chat_x = (coords[0] + coords[2]) // 2
-                        chat_y = (coords[1] + coords[3]) // 2
+                if bounds:
+                    coords = [int(c) for c in bounds.replace("][", ",").replace("[", "").replace("]", "").split(",")]
+                    cx = (coords[0] + coords[2]) // 2
+                    cy = (coords[1] + coords[3]) // 2
+                    
+                    # El arbol de React Native se congela en "Cargando..." a veces!
+                    if text_val in ["enviar mensaje", "send a message", "cargando...", "cargando", "loading..."]:
+                        chat_x, chat_y = cx, cy
+                        chat_found = True
+                        break
+                    elif desc_val == "emote":
+                        # Si encontramos el emote, la caja está a su izquierda
+                        chat_x = coords[0] - 50
+                        chat_y = cy
                         chat_found = True
                         break
         
         if chat_found:
-            self.log_msg(f" [{s[-4:]}] Caja detectada exacto en {chat_x}, {chat_y}. Abriendo...", "info")
+            self.log_msg(f" [{s[-4:]}] Caja detectada en {chat_x}, {chat_y}. Abriendo...", "info")
         else:
             self.log_msg(f" [{s[-4:]}] Caja no visible, usando coordenadas seguras ({chat_x}, {chat_y}).", "warn")
             
@@ -2556,7 +2563,6 @@ class MarketingeoApp(ctk.CTk):
             self.adb.run_command(["shell", "input", "tap", str(chat_x), str(chat_y)], s)
             time.sleep(2.0)
             
-            # Verificar si el teclado se abrio
             out, _, _ = self.adb.run_command(["shell", "dumpsys", "input_method"], s)
             if "mInputShown=true" in out or "mInputShown=true" in out.lower() or "mactive=true" in out.lower():
                 keyboard_open = True
@@ -2565,7 +2571,7 @@ class MarketingeoApp(ctk.CTk):
             self.log_msg(f" [{s[-4:]}] El teclado no salio. Re-intentando tap...", "warn")
             
         if not keyboard_open:
-            self.log_msg(f" [{s[-4:]}] [AVISO] El teclado no se pudo abrir, intentando escribir a ciegas...", "error")
+            self.log_msg(f" [{s[-4:]}] [AVISO] Teclado cerrado. Intentando a ciegas...", "error")
         
         # 3. Escribir mensaje
         msg = self.get_random_kick_message()
@@ -2577,13 +2583,13 @@ class MarketingeoApp(ctk.CTk):
         self.adb.run_command(["shell", "input", "keyevent", "66"], s)
         time.sleep(1.0)
         
-        # 5. Intentar pulsar boton Enviar fisico por si acaso
+        # 5. Intentar pulsar boton Enviar fisico (desc: "send")
         root2 = getattr(self, 'pull_and_parse', lambda x: None)(s)
         if root2 is not None:
             for n in root2.iter("node"):
                 t2 = n.get("text", "").lower()
                 d2 = n.get("content-desc", "").lower()
-                if t2 == "enviar" or t2 == "send" or "enviar" in d2 or "send" in d2:
+                if t2 in ["enviar", "send"] or "enviar" in d2 or "send" in d2:
                     bounds = n.get("bounds", "")
                     if bounds:
                         coords = [int(c) for c in bounds.replace("][", ",").replace("[", "").replace("]", "").split(",")]
@@ -2593,7 +2599,7 @@ class MarketingeoApp(ctk.CTk):
                         break
         
         # 6. Tap de escape para bajar el teclado
-        self.adb.run_command(["shell", "input", "keyevent", "4"], s) # BACK key
+        self.adb.run_command(["shell", "input", "keyevent", "4"], s)
         self.log_msg(f" [{s[-4:]}] Mensaje enviado.", "info")
 
     def inject_kick(self):
