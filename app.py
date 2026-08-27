@@ -1575,9 +1575,6 @@ class MarketingeoApp(ctk.CTk):
 
     def parse_inputs(self):
         return 9999, 999999.0
-        except ValueError:
-            messagebox.showerror("Error", "Lotes y minutos numéricos.")
-            return None, None
 
     def attempt_start(self):
         # Check that devices are selected
