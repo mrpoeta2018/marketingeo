@@ -2506,34 +2506,37 @@ class MarketingeoApp(ctk.CTk):
     def interact_kick_stream(self, s):
         import time
         import re
-        self.log_msg(f" [{s[-4:]}] Buscando caja de chat en Kick...", "info")
         
-        # 1. Despertar pantalla
+        # --- Paso 1: Medir pantalla real del dispositivo ---
         stdout, _, _ = self.adb.run_command(["shell", "wm", "size"], s)
         width, height = 480, 960
         match = re.search(r"(\d+)x(\d+)", stdout or "")
         if match:
             width, height = int(match.group(1)), int(match.group(2))
+        self.log_msg(f" [{s[-4:]}] Pantalla: {width}x{height}. Escaneando Kick...", "info")
         
+        # --- Paso 2: Despertar pantalla ---
         self.adb.run_command(["shell", "input", "tap", str(width//2), str(height//2)], s)
         time.sleep(1.0)
         
-        # 2. Buscar caja con reintentos (hasta 3 intentos x 10s cada uno)
-        chat_found = False
-        chat_x, chat_y = int(width * 0.43), int(height * 0.82)
+        # --- Paso 3: Escanear UI hasta 3 veces para encontrar la barra de chat ---
+        chat_x, chat_y = None, None
         
         for intento in range(3):
             root = getattr(self, 'pull_and_parse', lambda x: None)(s)
             
             if root is not None:
-                # Guardar radiografia para debug
                 with open('kick_debug.txt', 'w', encoding='utf-8') as dbg:
                     for n in root.iter('node'):
                         t = n.get('text', '')
                         d = n.get('content-desc', '')
                         b = n.get('bounds', '')
                         if t or d: dbg.write(f'T:{t} | D:{d} | B:{b}\n')
-                        
+                
+                # Guardar todos los elementos del tercio inferior para calcular
+                bottom_elements = {}
+                lower_third = height * 0.7
+                
                 for n in root.iter("node"):
                     text_val = n.get("text", "").lower()
                     desc_val = n.get("content-desc", "").lower()
@@ -2543,36 +2546,65 @@ class MarketingeoApp(ctk.CTk):
                     cx = (coords[0] + coords[2]) // 2
                     cy = (coords[1] + coords[3]) // 2
                     
+                    # Solo elementos en el tercio inferior de la pantalla
+                    if cy < lower_third: continue
+                    
+                    # Prioridad 1: caja de texto directamente
                     if text_val in ["enviar mensaje", "send a message", "cargando...", "cargando", "loading..."]:
                         chat_x, chat_y = cx, cy
-                        chat_found = True
                         self.log_msg(f" [{s[-4:]}] ✅ Caja encontrada ('{text_val}') en {cx},{cy}", "info")
                         break
-                    elif desc_val == "emote":
-                        chat_x = coords[0] - 50
-                        chat_y = cy
-                        chat_found = True
-                        self.log_msg(f" [{s[-4:]}] ✅ Caja encontrada (via emote) en {chat_x},{cy}", "info")
-                        break
-                        
-            if chat_found:
+                    
+                    # Prioridad 2: boton emote -> caja esta a su izquierda
+                    if desc_val == "emote" and "emote" not in bottom_elements:
+                        bottom_elements["emote"] = (coords[0], cy)  # borde izquierdo del emote
+                    
+                    # Prioridad 3: boton send -> caja esta a su izquierda
+                    if desc_val == "send" and "send" not in bottom_elements:
+                        bottom_elements["send"] = (coords[0], cy)  # borde izquierdo del send
+                    
+                    # Prioridad 4: boton identity (foto de perfil) -> caja esta a su derecha
+                    if desc_val == "identity" and "identity" not in bottom_elements:
+                        bottom_elements["identity"] = (coords[2], cy)  # borde derecho del identity
+                
+                # Calcular posicion de la caja segun lo que encontramos
+                if chat_x is None:
+                    if "emote" in bottom_elements:
+                        # La caja esta entre el identity y el emote
+                        ex, ey = bottom_elements["emote"]
+                        chat_x = ex - 80  # 80px a la izquierda del emote
+                        chat_y = ey
+                        self.log_msg(f" [{s[-4:]}] ✅ Caja calculada (via emote) en {chat_x},{chat_y}", "info")
+                    elif "send" in bottom_elements:
+                        sx, sy = bottom_elements["send"]
+                        chat_x = sx - 150  # a la izquierda del boton send
+                        chat_y = sy
+                        self.log_msg(f" [{s[-4:]}] ✅ Caja calculada (via send) en {chat_x},{chat_y}", "info")
+                    elif "identity" in bottom_elements:
+                        ix, iy = bottom_elements["identity"]
+                        chat_x = ix + 80  # a la derecha del identity
+                        chat_y = iy
+                        self.log_msg(f" [{s[-4:]}] ✅ Caja calculada (via identity) en {chat_x},{chat_y}", "info")
+            
+            if chat_x is not None:
                 break
             else:
                 if intento < 2:
-                    self.log_msg(f" [{s[-4:]}] ⏳ Caja no visible aun (intento {intento+1}/3). Esperando 10s mas...", "warn")
+                    self.log_msg(f" [{s[-4:]}] ⏳ Nada visible aun (intento {intento+1}/3). Esperando 10s...", "warn")
                     time.sleep(10)
                     self.adb.run_command(["shell", "input", "tap", str(width//2), str(height//2)], s)
                     time.sleep(1)
                 else:
-                    self.log_msg(f" [{s[-4:]}] ❌ No se encontro la caja despues de 3 intentos.", "error")
-                    self.log_msg(f" [{s[-4:]}] ⚠️ Usando coordenadas de emergencia ({chat_x},{chat_y}). Kick puede no haber cargado bien.", "error")
+                    # Ultimo recurso: proporcional a la pantalla real
+                    chat_x = int(width * 0.43)
+                    chat_y = int(height * 0.82)
+                    self.log_msg(f" [{s[-4:]}] ❌ Scan fallido x3. Calculando proporcional: {chat_x},{chat_y}", "error")
         
-        # 3. Tocar la caja y verificar que el teclado se abra
+        # --- Paso 4: Tocar y verificar teclado ---
         keyboard_open = False
         for tap_intento in range(2):
             self.adb.run_command(["shell", "input", "tap", str(chat_x), str(chat_y)], s)
             time.sleep(2.5)
-            
             try:
                 out, _, _ = self.adb.run_command(["shell", "dumpsys", "input_method"], s)
                 if out and ("mInputShown=true" in out or "mActive=true" in out):
@@ -2580,26 +2612,25 @@ class MarketingeoApp(ctk.CTk):
                     break
             except Exception:
                 pass
-            
             if tap_intento == 0 and not keyboard_open:
-                self.log_msg(f" [{s[-4:]}] ⏳ Teclado no salio. Re-tocando...", "warn")
+                self.log_msg(f" [{s[-4:]}] ⏳ Teclado no salio. Reintentando...", "warn")
         
         if keyboard_open:
-            self.log_msg(f" [{s[-4:]}] ✅ Teclado abierto. Escribiendo...", "info")
+            self.log_msg(f" [{s[-4:]}] ✅ Teclado abierto.", "info")
         else:
-            self.log_msg(f" [{s[-4:]}] ❌ Teclado no se abrio. Escribiendo a ciegas (puede fallar).", "error")
+            self.log_msg(f" [{s[-4:]}] ❌ Teclado no detectable. Escribiendo igual...", "error")
         
-        # 4. Escribir mensaje
+        # --- Paso 5: Escribir y enviar ---
         msg = self.get_random_kick_message()
         self.log_msg(f" [{s[-4:]}] ✍️ Mensaje: {msg}", "info")
         self._type_text_human(s, msg)
         time.sleep(0.5)
         
-        # 5. Enviar con ENTER
+        # ENTER
         self.adb.run_command(["shell", "input", "keyevent", "66"], s)
         time.sleep(1.0)
         
-        # 6. Buscar y pulsar boton Send fisico
+        # Buscar boton Send fisico
         root2 = getattr(self, 'pull_and_parse', lambda x: None)(s)
         if root2 is not None:
             for n in root2.iter("node"):
@@ -2612,10 +2643,10 @@ class MarketingeoApp(ctk.CTk):
                         sx = (coords[0] + coords[2]) // 2
                         sy = (coords[1] + coords[3]) // 2
                         self.adb.run_command(["shell", "input", "tap", str(sx), str(sy)], s)
-                        self.log_msg(f" [{s[-4:]}] ✅ Boton Send pulsado en {sx},{sy}", "info")
+                        self.log_msg(f" [{s[-4:]}] ✅ Send pulsado en {sx},{sy}", "info")
                         break
         
-        # 7. Bajar teclado (ESCAPE, no BACK, para no minimizar el video de Kick)
+        # ESCAPE para bajar teclado sin minimizar el video
         self.adb.run_command(["shell", "input", "keyevent", "111"], s)
         self.log_msg(f" [{s[-4:]}] ✅ Mensaje enviado.", "info")
 
