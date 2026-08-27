@@ -2059,7 +2059,7 @@ class MarketingeoApp(ctk.CTk):
         batch_frame.pack(fill="x", padx=30, pady=(0, 10))
         ctk.CTkLabel(batch_frame, text="Procesar de a (Lotes):", font=("Arial", 12, "bold"), text_color="white").pack(side="left")
         self.batch_size_var = ctk.StringVar(value="Todos")
-        ctk.CTkOptionMenu(batch_frame, values=["1", "2", "4", "5", "10", "Todos"], variable=self.batch_size_var, width=80).pack(side="left", padx=10)
+        ctk.CTkOptionMenu(batch_frame, values=["1", "2", "4", "5", "10", "20", "30", "40", "Todos"], variable=self.batch_size_var, width=80).pack(side="left", padx=10)
 
         btn_frame = ctk.CTkFrame(kick_frame, fg_color="transparent")
         btn_frame.pack(fill="x", pady=20, padx=30)
@@ -2812,12 +2812,11 @@ class MarketingeoApp(ctk.CTk):
         self.log_msg(f" [{s[-4:]}] ✅ Mensaje enviado.", "info")
 
     def send_kick_emote(self, s):
-        """Encuentra el boton de emotes, lo abre, elige uno aleatorio y lo envia."""
+        """Usa la barra rapida de emojis verdes justo arriba de la caja de chat."""
         import time
         import re
         import random
         
-        # 1. Medir pantalla real del dispositivo
         stdout, _, _ = self.adb.run_command(["shell", "wm", "size"], s)
         width, height = 480, 960
         match = re.search(r"(\d+)x(\d+)", stdout or "")
@@ -2826,19 +2825,19 @@ class MarketingeoApp(ctk.CTk):
         
         self.log_msg(f" [{s[-4:]}] Escaneando para enviar Emoji Verde...", "info")
         
-        # 2. Despertar
+        # Despertar
         self.adb.run_command(["shell", "input", "tap", str(width//2), str(height//2)], s)
         time.sleep(1.0)
         
-        emote_btn_x, emote_btn_y = None, None
+        chat_x, chat_y = None, None
         send_btn_x, send_btn_y = None, None
         
-        # 3. Buscar el boton "emote" (la carita) y el boton "send"
         for intento in range(3):
             root = getattr(self, 'pull_and_parse', lambda x: None)(s)
             if root is not None:
-                lower_third = height * 0.7
+                lower_third = height * 0.6
                 for n in root.iter("node"):
+                    text_val = n.get("text", "").lower()
                     desc_val = n.get("content-desc", "").lower()
                     bounds = n.get("bounds", "")
                     if not bounds: continue
@@ -2848,73 +2847,60 @@ class MarketingeoApp(ctk.CTk):
                     
                     if cy < lower_third: continue
                     
-                    if desc_val == "emote":
-                        emote_btn_x, emote_btn_y = cx, cy
-                    elif desc_val == "send":
+                    # Buscar caja de chat
+                    if text_val in ["enviar mensaje", "send a message", "cargando...", "loading..."]:
+                        chat_x, chat_y = cx, cy
+                        
+                    # Buscar boton de enviar (flechita)
+                    if desc_val == "send":
                         send_btn_x, send_btn_y = cx, cy
                         
-                if emote_btn_x and emote_btn_y:
-                    break
+            if chat_x and chat_y:
+                break
+                
+            self.log_msg(f" [{s[-4:]}]  Buscando chat para emojis... (Intento {intento+1}/3)", "warn")
+            time.sleep(4)
             
-            self.log_msg(f" [{s[-4:]}]  Buscando boton de emojis... (Intento {intento+1}/3)", "warn")
-            time.sleep(5)
-            
-        if not emote_btn_x or not emote_btn_y:
-            self.log_msg(f" [{s[-4:]}] ❌ No se encontro boton de Emojis.", "error")
+        if not chat_y:
+            self.log_msg(f" [{s[-4:]}] ❌ No se encontro la caja de chat para calcular los emojis.", "error")
             return
             
-        self.log_msg(f" [{s[-4:]}] ✅ Boton de emojis encontrado. Abriendo...", "success")
-        self.adb.run_command(["shell", "input", "tap", str(emote_btn_x), str(emote_btn_y)], s)
-        time.sleep(2.0) # Esperar que suba el cajon de emojis
+        # La barra de emojis rapidos esta aprox 70-90 pixeles (en 960p) arriba de la caja de chat
+        offset_y = int(height * 0.08)
+        quick_emote_y = chat_y - offset_y
         
-        # 4. Tocar un emoji aleatorio en el panel.
-        # Por lo general, los emojis estan en una cuadricula justo por encima del boton emote
-        # Haremos varios toques ligeros en la zona del panel de emotes
-        emoji_x = width // 2
-        emoji_y = height - 400 # ~200px arriba del boton emote (depende de la resolucion)
+        cantidad = random.randint(1, 2)
+        self.log_msg(f" [{s[-4:]}] ✅ Tocando {cantidad} emojis rapidos (Barra superior)...", "success")
         
-        # Ajustamos el Y segun la altura:
-        # El drawer suele tomar unos 300px desde abajo
-        panel_y = height - 250
-        
-        # Tocar uno aleatorio en el centro
-        self.adb.run_command(["shell", "input", "tap", str(random.randint(width//3, width*2//3)), str(panel_y)], s)
-        time.sleep(1.0)
-        
-        # A veces Kick requiere 2 toques, tocamos otro por si acaso
-        self.adb.run_command(["shell", "input", "tap", str(random.randint(width//4, width//2)), str(panel_y + 50)], s)
-        time.sleep(1.0)
-        
-        # 5. Volver a buscar el boton send, porque a veces cambia de posicion al abrir emojis
-        root = getattr(self, 'pull_and_parse', lambda x: None)(s)
-        if root is not None:
-            for n in root.iter("node"):
-                if n.get("content-desc", "").lower() == "send":
-                    bounds = n.get("bounds", "")
-                    if bounds:
-                        coords = [int(c) for c in bounds.replace("][", ",").replace("[", "").replace("]", "").split(",")]
-                        send_btn_x = (coords[0] + coords[2]) // 2
-                        send_btn_y = (coords[1] + coords[3]) // 2
-                        break
-        
-        if send_btn_x and send_btn_y:
-            self.log_msg(f" [{s[-4:]}] ✅ Boton enviar encontrado. Enviando Emoji...", "success")
-            self.adb.run_command(["shell", "input", "tap", str(send_btn_x), str(send_btn_y)], s)
-        else:
-            # Fallback de coordenadas si no encuentra el boton despues de abrir el panel
-            # Usamos las coordenadas del boton enviar antes de abrir el panel
-            self.log_msg(f" [{s[-4:]}] ⚠️ Usando coordenadas de enviar anteriores...", "warn")
-            self.adb.run_command(["shell", "input", "tap", str(width - 50), str(height - 150)], s) # aproximado
+        for _ in range(cantidad):
+            # Tocar un emoji aleatorio en el ancho de la pantalla
+            random_x = random.randint(int(width * 0.2), int(width * 0.8))
+            self.adb.run_command(["shell", "input", "tap", str(random_x), str(quick_emote_y)], s)
+            time.sleep(0.5)
             
         time.sleep(1.0)
         
-        # 6. Bajar el teclado / panel (con boton BACK o ESCAPE)
-        self.adb.run_command(["shell", "input", "keyevent", "111"], s) # ESCAPE
-        time.sleep(0.5)
-        self.adb.run_command(["shell", "input", "keyevent", "4"], s) # BACK por si el ESCAPE no cierra el panel de emotes
-        
+        # Volvemos a buscar el boton enviar por si no lo capturamos antes
+        if not send_btn_x:
+            root = getattr(self, 'pull_and_parse', lambda x: None)(s)
+            if root is not None:
+                for n in root.iter("node"):
+                    if n.get("content-desc", "").lower() == "send":
+                        bounds = n.get("bounds", "")
+                        if bounds:
+                            coords = [int(c) for c in bounds.replace("][", ",").replace("[", "").replace("]", "").split(",")]
+                            send_btn_x = (coords[0] + coords[2]) // 2
+                            send_btn_y = (coords[1] + coords[3]) // 2
+                            break
+                            
+        if send_btn_x and send_btn_y:
+            self.adb.run_command(["shell", "input", "tap", str(send_btn_x), str(send_btn_y)], s)
+        else:
+            # Fallback: tocar a la derecha de la caja de chat (ahi suele estar el boton enviar)
+            fallback_x = width - int(width * 0.08)
+            self.adb.run_command(["shell", "input", "tap", str(fallback_x), str(chat_y)], s)
+            
         self.log_msg(f" [{s[-4:]}] 🟢 Emoji Enviado Correctamente.", "success")
-
 
     def inject_kick(self):
         self.stop_social_threads = False
