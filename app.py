@@ -585,9 +585,8 @@ class ProxyAssignmentWindow(ctk.CTkToplevel):
         self.destroy()
 
 class MarketingeoApp(ctk.CTk):
-    def __init__(self, app_mode="music"):
+    def __init__(self):
         super().__init__()
-        self.app_mode = app_mode
         self.title("OmniUSB Director 🌍 [Stealth Proxy Edition]")
         self.geometry("1200x900")
         
@@ -3204,42 +3203,11 @@ class MarketingeoApp(ctk.CTk):
 
 
 
-class AppModeLauncher(ctk.CTk):
-    def __init__(self):
-        super().__init__()
-        self.title("Modo de Inicio")
-        self.geometry("400x300")
-        self.eval('tk::PlaceWindow . center')
-        
-        self.mode = None
-        
-        ctk.CTkLabel(self, text="¿Qué deseas hacer hoy?", font=("Arial", 18, "bold")).pack(pady=30)
-        
-        btn_music = ctk.CTkButton(self, text="🎵 Granja de Música (Spotify/YT)", height=50, fg_color="#10B981", hover_color="#059669", 
-                                  font=("Arial", 14, "bold"), command=self.choose_music)
-        btn_music.pack(fill="x", padx=40, pady=10)
-        
-        btn_social = ctk.CTkButton(self, text="📱 Redes Sociales (Kick/IG)", height=50, fg_color="#8B5CF6", hover_color="#7C3AED", 
-                                   font=("Arial", 14, "bold"), command=self.choose_social)
-        btn_social.pack(fill="x", padx=40, pady=10)
-
-    def choose_music(self):
-        self.mode = "music"
-        self.destroy()
-
-    def choose_social(self):
-        self.mode = "social"
-        self.destroy()
-
 if __name__ == "__main__":
     try:
         debug_log("Entrando a Main Loop")
-        launcher = AppModeLauncher()
-        launcher.mainloop()
-        
-        if launcher.mode:
-            app = ProxyFarmApp(app_mode=launcher.mode)
-            app.mainloop()
+        app = MarketingeoApp()
+        app.mainloop()
     except Exception as e:
         err = f"ERROR CRITICO EN ARRANQUE: {str(e)}"
         print(err)
