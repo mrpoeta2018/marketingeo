@@ -1234,57 +1234,45 @@ class MarketingeoApp(ctk.CTk):
                     self.no_proxy_var.set(data.get("no_proxy", False))
                 if hasattr(self, 'bot_only_var'):
                     self.bot_only_var.set(data.get("bot_only", False))
+                if hasattr(self, 'kick_interact'):
+                    self.kick_interact.set(data.get("kick_interact", False))
+                if hasattr(self, 'acc_slow_mode_var'):
+                    self.acc_slow_mode_var.set(data.get("acc_slow_mode", False))
         except:
             pass
 
 
     def save_config(self):
         try:
-            ytm_text = ""
-            if hasattr(self, 'ytmusic_textbox'):
-                ytm_text = self.ytmusic_textbox.get("1.0", "end").strip()
+            data = {}
+            
+            # Proxies
+            if hasattr(self, 'proxy_textbox'):
+                data["proxies"] = self.proxy_textbox.get("1.0", "end").strip()
                 
-            data = {
-                "batch": self.batch_entry.get(),
-                "mins": self.mins_entry.get(),
-                "infinite": self.infinite_var.get(),
-                "stealth": self.stealth_var.get(),
-                "no_proxy": self.no_proxy_var.get(),
-                "bot_only": getattr(self, 'bot_only_var', ctk.BooleanVar(value=False)).get(),
-                "proxies": self.proxy_textbox.get("1.0", "end").strip(),
-                "playlists": self.spotify_normal_urls if getattr(self, '_last_spotify_mode', 'Normal') == 'Clonar Copia' else self.playlist_textbox.get("1.0", "end").strip(),
-                "tracks": self.tracks_textbox.get("1.0", "end").strip() if hasattr(self, 'tracks_textbox') else "",
-                "spotify_clone_url": self.playlist_textbox.get("1.0", "end").strip() if getattr(self, '_last_spotify_mode', 'Normal') == 'Clonar Copia' else getattr(self, 'spotify_clone_url', ''),
-                "master_mode": self.master_mode.get(),
-                "playlist_interval": self.playlist_interval.get(),
-                "youtube_playlists": self.youtube_textbox.get("1.0", "end").strip(),
-                "yt_music_playlists": ytm_text,
-                "awa_playlists": self.awa_textbox.get("1.0", "end").strip() if hasattr(self, 'awa_textbox') else "",
-                "sc_playlists": self.sc_textbox.get("1.0", "end").strip() if hasattr(self, 'sc_textbox') else "",
-                "pan_playlists": self.pan_textbox.get("1.0", "end").strip() if hasattr(self, 'pan_textbox') else "",
-                "am_playlists": self.am_textbox.get("1.0", "end").strip() if hasattr(self, 'am_textbox') else "",
-                "apl_playlists": self.apl_textbox.get("1.0", "end").strip() if hasattr(self, 'apl_textbox') else "",
-                "ig_playlists": self.ig_textbox.get("1.0", "end").strip() if hasattr(self, 'ig_textbox') else "",
-                "kick_playlists": self.kick_textbox.get("1.0", "end").strip() if hasattr(self, 'kick_textbox') else "",
-                "ig_auto": self.ig_auto.get() if hasattr(self, 'ig_auto') else True,
-                "kick_auto": self.kick_auto.get() if hasattr(self, 'kick_auto') else True,
-                "youtube_drip": self.youtube_drip_var.get(),
-                "watchdog_enabled": self.watchdog_enabled.get(),
-                "ghost_enabled": self.ghost_enabled.get(),
-                "use_spotify": self.use_spotify.get() if hasattr(self, 'use_spotify') else True,
-                "use_ytmusic": self.use_ytmusic.get() if hasattr(self, 'use_ytmusic') else True,
-                "use_ytvideo": self.use_ytvideo.get() if hasattr(self, 'use_ytvideo') else True,
-                "use_awa": self.use_awa.get() if hasattr(self, 'use_awa') else True,
-                "use_sc": self.use_sc.get() if hasattr(self, 'use_sc') else True,
-                "use_pan": self.use_pan.get() if hasattr(self, 'use_pan') else True,
-                "use_am": self.use_am.get() if hasattr(self, 'use_am') else True,
-                "use_apl": self.use_apl.get() if hasattr(self, 'use_apl') else True
-            }
-            import os, json
-            with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json"), "w") as f:
-                json.dump(data, f)
-        except:
-            pass
+            # Cajas de Redes Sociales
+            if hasattr(self, 'ig_textbox'):
+                data["ig_playlists"] = self.ig_textbox.get("1.0", "end").strip()
+            if hasattr(self, 'kick_textbox'):
+                data["kick_playlists"] = self.kick_textbox.get("1.0", "end").strip()
+            if hasattr(self, 'kick_chat_textbox'):
+                data["kick_chat"] = self.kick_chat_textbox.get("1.0", "end").strip()
+                
+            # Opciones
+            if hasattr(self, 'no_proxy_var'):
+                data["no_proxy"] = self.no_proxy_var.get()
+            if hasattr(self, 'bot_only_var'):
+                data["bot_only"] = self.bot_only_var.get()
+            if hasattr(self, 'kick_interact'):
+                data["kick_interact"] = self.kick_interact.get()
+            if hasattr(self, 'acc_slow_mode_var'):
+                data["acc_slow_mode"] = self.acc_slow_mode_var.get()
+                
+            import json
+            with open("config.json", "w") as f:
+                json.dump(data, f, indent=4)
+        except Exception as e:
+            self.log_msg(f" Error guardando config: {e}", "error")
 
     def show_inventory(self):
         InventoryWindow(self)
@@ -2501,66 +2489,112 @@ class MarketingeoApp(ctk.CTk):
 
     def _type_text_human(self, serial, text):
         import time
+        # Caracteres especiales y espacios fallan en React Native con ADB normal
+        # Para espacios usaremos el keyevent 62 (SPACE)
         for char in text:
             if char == " ":
-                self.adb.run_command(["shell", "input", "text", "%s"], serial)
+                self.adb.run_command(["shell", "input", "keyevent", "62"], serial)
             else:
-                self.adb.run_command(["shell", "input", "text", char], serial)
-            time.sleep(0.1)
+                # Escapar caracteres
+                safe_char = char.replace("\\", "\\\\").replace("\"", "\\\"").replace("'", "\\'")
+                safe_char = safe_char.replace(" ", "%s").replace("&", "\\&").replace(";", "\\;")
+                safe_char = safe_char.replace("(", "\\(").replace(")", "\\)").replace("|", "\\|")
+                self.adb.run_command(["shell", "input", "text", safe_char], serial)
+            time.sleep(0.05)
 
     def interact_kick_stream(self, s):
         import time
-        import random
-        self.log_msg(f" [{s[-4:]}] Buscando caja de chat...", "info")
+        import re
+        self.log_msg(f" [{s[-4:]}] Buscando caja de chat inteligentemente...", "info")
         
-        self.adb.run_command(["shell", "input", "tap", "360", "400"], s)
+        # 1. Despertar / Quitar UI de video
+        stdout, _, _ = self.adb.run_command(["shell", "wm", "size"], s)
+        width, height = 720, 1280
+        match = re.search(r"(\d+)x(\d+)", stdout)
+        if match:
+            width, height = int(match.group(1)), int(match.group(2))
+            
+        self.adb.run_command(["shell", "input", "tap", str(width//2), str(height//2)], s)
         time.sleep(1.0)
         
-        # Buscar y abrir la caja de chat
+        # 2. Escanear pantalla buscando la caja 'Enviar mensaje'
         root = getattr(self, 'pull_and_parse', lambda x: None)(s)
         chat_found = False
+        chat_x, chat_y = int(width * 0.3), int(height * 0.95) # Fallback
+        
         if root is not None:
+            # Guardamos la radiografia para debug
+            with open('kick_debug.txt', 'w', encoding='utf-8') as dbg:
+                for n in root.iter('node'):
+                    t = n.get('text', '')
+                    d = n.get('content-desc', '')
+                    b = n.get('bounds', '')
+                    if t or d: dbg.write(f'T:{t} | D:{d} | B:{b}\n')
+                    
             for n in root.iter("node"):
                 text_val = n.get("text", "").lower()
                 desc_val = n.get("content-desc", "").lower()
-                if "mensaje" in text_val or "message" in text_val or "chat" in text_val or "keyboard" in desc_val:
+                
+                # Busqueda ESTRICTA para no confundir con otros botones de chat
+                if text_val == "enviar mensaje" or text_val == "send a message" or "enviar mensaje" in desc_val:
                     bounds = n.get("bounds", "")
                     if bounds:
                         coords = [int(c) for c in bounds.replace("][", ",").replace("[", "").replace("]", "").split(",")]
-                        cx = (coords[0] + coords[2]) // 2
-                        cy = (coords[1] + coords[3]) // 2
-                        self.adb.run_command(["shell", "input", "tap", str(cx), str(cy)], s)
+                        chat_x = (coords[0] + coords[2]) // 2
+                        chat_y = (coords[1] + coords[3]) // 2
                         chat_found = True
                         break
         
-        if not chat_found:
-            self.adb.run_command(["shell", "input", "tap", "135", "742"], s) # Tap en zona de keyboard de Kick
+        if chat_found:
+            self.log_msg(f" [{s[-4:]}] Caja detectada exacto en {chat_x}, {chat_y}. Abriendo...", "info")
+        else:
+            self.log_msg(f" [{s[-4:]}] Caja no visible, usando coordenadas seguras ({chat_x}, {chat_y}).", "warn")
             
-        time.sleep(2)
+        # Intentos para abrir el teclado
+        keyboard_open = False
+        for attempt in range(2):
+            self.adb.run_command(["shell", "input", "tap", str(chat_x), str(chat_y)], s)
+            time.sleep(2.0)
+            
+            # Verificar si el teclado se abrio
+            out, _, _ = self.adb.run_command(["shell", "dumpsys", "input_method"], s)
+            if "mInputShown=true" in out or "mInputShown=true" in out.lower() or "mactive=true" in out.lower():
+                keyboard_open = True
+                break
+                
+            self.log_msg(f" [{s[-4:]}] El teclado no salio. Re-intentando tap...", "warn")
+            
+        if not keyboard_open:
+            self.log_msg(f" [{s[-4:]}] [AVISO] El teclado no se pudo abrir, intentando escribir a ciegas...", "error")
         
+        # 3. Escribir mensaje
         msg = self.get_random_kick_message()
         self.log_msg(f" [{s[-4:]}] Escribiendo msj: {msg}", "info")
-        
-        # Escribir letra por letra como humano para evitar bugs de React Native
         self._type_text_human(s, msg)
         time.sleep(0.5)
         
-        # Enviar (Enter)
+        # 4. Enviar (ENTER)
         self.adb.run_command(["shell", "input", "keyevent", "66"], s)
-        time.sleep(0.5)
+        time.sleep(1.0)
         
-        # Pulsar botón SEND físico en pantalla
-        root = getattr(self, 'pull_and_parse', lambda x: None)(s)
-        if root is not None:
-            for n in root.iter("node"):
-                if "send" in n.get("content-desc", "").lower() or "enviar" in n.get("content-desc", "").lower():
+        # 5. Intentar pulsar boton Enviar fisico por si acaso
+        root2 = getattr(self, 'pull_and_parse', lambda x: None)(s)
+        if root2 is not None:
+            for n in root2.iter("node"):
+                t2 = n.get("text", "").lower()
+                d2 = n.get("content-desc", "").lower()
+                if t2 == "enviar" or t2 == "send" or "enviar" in d2 or "send" in d2:
                     bounds = n.get("bounds", "")
                     if bounds:
                         coords = [int(c) for c in bounds.replace("][", ",").replace("[", "").replace("]", "").split(",")]
-                        cx = (coords[0] + coords[2]) // 2
-                        cy = (coords[1] + coords[3]) // 2
-                        self.adb.run_command(["shell", "input", "tap", str(cx), str(cy)], s)
+                        sx = (coords[0] + coords[2]) // 2
+                        sy = (coords[1] + coords[3]) // 2
+                        self.adb.run_command(["shell", "input", "tap", str(sx), str(sy)], s)
                         break
+        
+        # 6. Tap de escape para bajar el teclado
+        self.adb.run_command(["shell", "input", "keyevent", "4"], s) # BACK key
+        self.log_msg(f" [{s[-4:]}] Mensaje enviado.", "info")
 
     def inject_kick(self):
         self.stop_social_threads = False
