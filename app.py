@@ -87,7 +87,7 @@ _ACCESS_PASSWORD = "Androide10"
 class LicenseValidationWindow(ctk.CTkToplevel):
     def __init__(self, master, on_success_callback):
         super().__init__(master)
-        self.title("🔒 OmniUSB - Activación de Licencia")
+        self.title("🔒 Marketingeo - Activación de Licencia")
         self.geometry("500x380")
         self.attributes("-topmost", True)
         self.protocol("WM_DELETE_WINDOW", self.on_close)
@@ -635,7 +635,7 @@ class MarketingeoApp(ctk.CTk):
 
         self.header_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.header_frame.pack(fill="x", pady=5, padx=10)
-        title = ctk.CTkLabel(self.header_frame, text="🛸 OmniUSB Panel Central", font=("Arial", 22, "bold"))
+        title = ctk.CTkLabel(self.header_frame, text="🛸 Marketingeo Panel Central", font=("Arial", 22, "bold"))
         title.pack(side="left", padx=10)
         self.compact_btn = ctk.CTkButton(self.header_frame, text="📏 Compacto", width=100, height=28, command=self.toggle_compact, fg_color="#374151", hover_color="#4B5563")
         self.compact_btn.pack(side="left", padx=10)
@@ -1964,7 +1964,7 @@ class MarketingeoApp(ctk.CTk):
     def build_social_tab(self):
         self.tab_social.grid_columnconfigure(0, weight=1)
         
-        main_frame = ctk.CTkFrame(self.tab_social, fg_color="transparent")
+        main_frame = ctk.CTkScrollableFrame(self.tab_social, fg_color="transparent")
         main_frame.pack(fill="both", expand=True, padx=20, pady=20)
         
         # KICK (Now takes the whole tab)
@@ -1985,10 +1985,10 @@ class MarketingeoApp(ctk.CTk):
         self.kick_bot_interval.set("7 min")
         btn_row = ctk.CTkFrame(bot_frame, fg_color="transparent")
         btn_row.pack(fill="x", padx=15, pady=(0,10))
-        self.kick_bot_start_btn = ctk.CTkButton(btn_row, text="INICIAR BOT", fg_color="#16a34a", hover_color="#15803d", font=("Arial", 13, "bold"), command=self.start_cascade_bot)
-        self.kick_bot_start_btn.pack(side="left", padx=(0,10))
-        self.kick_bot_stop_btn = ctk.CTkButton(btn_row, text="DETENER BOT", fg_color="#dc2626", hover_color="#b91c1c", font=("Arial", 13, "bold"), command=self.stop_cascade_bot)
-        self.kick_bot_stop_btn.pack(side="left")
+        self.self.kick_bot_start_btn = ctk.CTkButton(btn_row, text="INICIAR BOT", fg_color="#16a34a", hover_color="#15803d", font=("Arial", 13, "bold"), command=self.start_cascade_bot)
+        self.self.kick_bot_start_btn.pack(side="left", padx=(0,10))
+        self.self.kick_bot_stop_btn = ctk.CTkButton(btn_row, text="DETENER BOT", fg_color="#dc2626", hover_color="#b91c1c", font=("Arial", 13, "bold"), command=self.stop_cascade_bot)
+        self.self.kick_bot_stop_btn.pack(side="left")
         self.kick_auto = ctk.BooleanVar(value=False)  # compat
         self.kick_interact = ctk.BooleanVar(value=False)  # compat
         
@@ -2001,17 +2001,25 @@ class MarketingeoApp(ctk.CTk):
         self.kick_chat_textbox.insert("1.0", "Holaaa\nLlegandooo\nSaludos a todos\nQue buen stream!")
         self.kick_chat_textbox.pack(padx=30, pady=(0,20), fill="both", expand=True)
         
+        
+        # Batch selector
+        batch_frame = ctk.CTkFrame(kick_frame, fg_color="transparent")
+        batch_frame.pack(fill="x", padx=30, pady=(0, 10))
+        ctk.CTkLabel(batch_frame, text="Procesar de a (Lotes):", font=("Arial", 12, "bold"), text_color="white").pack(side="left")
+        self.batch_size_var = ctk.StringVar(value="Todos")
+        ctk.CTkOptionMenu(batch_frame, values=["1", "2", "4", "5", "10", "Todos"], variable=self.batch_size_var, width=80).pack(side="left", padx=10)
+
         btn_frame = ctk.CTkFrame(kick_frame, fg_color="transparent")
         btn_frame.pack(fill="x", pady=20, padx=30)
         
-        btn_kick_login = ctk.CTkButton(btn_frame, text="🔑 1. Pre-Check (Loguear Cuentas)", fg_color="#2563EB", hover_color="#1D4ED8", height=40, font=("Arial", 14, "bold"), command=self.start_kick_google_login)
-        btn_kick_login.pack(side="left")
+        self.btn_kick_login = ctk.CTkButton(btn_frame, text="🔑 1. Pre-Check (Loguear Cuentas)", fg_color="#2563EB", hover_color="#1D4ED8", height=40, font=("Arial", 14, "bold"), command=self.start_kick_google_login)
+        self.btn_kick_login.pack(side="left")
         
-        btn_kick = ctk.CTkButton(btn_frame, text="▶ 2. Inyectar Visitas Kick", fg_color="#16A34A", hover_color="#15803D", height=40, font=("Arial", 14, "bold"), command=self.inject_kick)
-        btn_kick.pack(side="right", padx=(10, 0))
+        self.btn_kick = ctk.CTkButton(btn_frame, text="▶ 2. Inyectar Visitas Kick", fg_color="#16A34A", hover_color="#15803D", height=40, font=("Arial", 14, "bold"), command=self.inject_kick)
+        self.btn_kick.pack(side="right", padx=(10, 0))
         
-        btn_kick_chat = ctk.CTkButton(btn_frame, text="💬 Forzar Comentario Ahora", fg_color="#9333EA", hover_color="#7E22CE", height=40, font=("Arial", 14, "bold"), command=self.force_kick_chat)
-        btn_kick_chat.pack(side="right")
+        self.btn_kick_chat = ctk.CTkButton(btn_frame, text="💬 Forzar Comentario Ahora", fg_color="#9333EA", hover_color="#7E22CE", height=40, font=("Arial", 14, "bold"), command=self.force_kick_chat)
+        self.btn_kick_chat.pack(side="right")
         
         bottom_frame = ctk.CTkFrame(self.tab_social, fg_color="transparent")
         bottom_frame.pack(fill="x", pady=10)
@@ -2020,7 +2028,7 @@ class MarketingeoApp(ctk.CTk):
 
     def build_ig_tab(self):
         self.tab_ig.grid_columnconfigure(0, weight=1)
-        main_frame = ctk.CTkFrame(self.tab_ig, fg_color="transparent")
+        main_frame = ctk.CTkScrollableFrame(self.tab_ig, fg_color="transparent")
         main_frame.pack(fill="both", expand=True, padx=20, pady=20)
         
         ig_frame = ctk.CTkFrame(main_frame, fg_color="#831843", corner_radius=12)
@@ -2464,16 +2472,42 @@ class MarketingeoApp(ctk.CTk):
 
 
     def force_kick_chat(self):
-        """Fuerza a todos los dispositivos activos a enviar un comentario inmediatamente."""
-        if not hasattr(self, 'engine') or not self.engine.active_devices:
-            self.log_msg(" [Error] No hay dispositivos activos para comentar.", "error")
+        """Fuerza a todos los dispositivos a buscar la caja de chat y enviar un comentario"""
+        if not hasattr(self, 'engine') or not getattr(self.engine, 'active_devices', []):
+            self.log_msg(" [Error] No hay dispositivos activos. Inicia el túnel.", "error")
             return
-        self.log_msg(" [Kick] Forzando comentario masivo en vivo...", "info")
+            
         import threading
-        for dev in self.engine.active_devices:
-            s = dev['serial']
-            # Llamada directa a interact - ignora el checkbox de auto-bot
-            threading.Thread(target=self.interact_kick_stream, args=(s,), daemon=True).start()
+        if hasattr(self, 'btn_kick_chat'):
+            self.btn_kick_chat.configure(text=" ⏳ Forzando Comentarios...", fg_color="#F59E0B")
+            
+        def _force():
+            from concurrent.futures import ThreadPoolExecutor
+            
+            batch_size = 1
+            if hasattr(self, 'batch_size_var'):
+                val = self.batch_size_var.get()
+                if val == "Todos":
+                    batch_size = len(self.engine.active_devices)
+                else:
+                    try: batch_size = int(val)
+                    except: batch_size = 1
+            else:
+                batch_size = len(self.engine.active_devices)
+                
+            def force_dev(dev):
+                s = dev['serial']
+                self.log_msg(f" [Kick] Forzando comentario manual en {s[-4:]}...", "info")
+                self.interact_kick_stream(s)
+
+            with ThreadPoolExecutor(max_workers=batch_size) as executor:
+                executor.map(force_dev, self.engine.active_devices)
+                
+            self.log_msg(" [Kick] Fuerza de Comentarios Terminada.", "success")
+            if hasattr(self, 'btn_kick_chat'):
+                self.after(0, lambda: self.btn_kick_chat.configure(text=" Forzar Comentario Ahora", fg_color="#9333EA"))
+                
+        threading.Thread(target=_force, daemon=True).start()
 
     def get_random_kick_message(self):
         import random
@@ -2500,7 +2534,7 @@ class MarketingeoApp(ctk.CTk):
             time.sleep(0.05)
 
     def start_cascade_bot(self):
-        """Inicia el bot de comentarios en cascada. Recorre dispositivos uno por uno."""
+        """Inicia el bot de comentarios en cascada."""
         import threading
         if getattr(self, '_cascade_running', False):
             self.log_msg(" [Bot] Ya esta corriendo. Usa DETENER BOT primero.", "warn")
@@ -2514,17 +2548,24 @@ class MarketingeoApp(ctk.CTk):
             return
         self._cascade_running = True
         self.log_msg(" [Bot] Bot en Cascada INICIADO.", "info")
+        
+        if hasattr(self, 'kick_bot_start_btn'):
+            self.kick_bot_start_btn.configure(text=" 🟢 CASCADA ACTIVA", fg_color="#F59E0B")
+            
         threading.Thread(target=self._cascade_loop, daemon=True).start()
 
     def stop_cascade_bot(self):
         """Detiene el bot de comentarios en cascada."""
         self._cascade_running = False
         self.log_msg(" [Bot] Bot en Cascada DETENIDO.", "warn")
+        if hasattr(self, 'kick_bot_start_btn'):
+            self.kick_bot_start_btn.configure(text=" INICIAR BOT", fg_color="#16A34A")
 
     def _cascade_loop(self):
-        """Loop principal: recorre dispositivos en cascada con intervalo entre cada uno."""
         import time
         import random
+        from concurrent.futures import ThreadPoolExecutor
+        
         while getattr(self, '_cascade_running', False):
             devices = getattr(self.engine, 'active_devices', [])
             if not devices:
@@ -2532,28 +2573,41 @@ class MarketingeoApp(ctk.CTk):
                 time.sleep(30)
                 continue
 
-            # Obtener intervalo en segundos
             interval_str = self.kick_bot_interval.get()
             interval_sec = int(interval_str.replace(" min", "")) * 60
 
-            for dev in devices:
-                if not getattr(self, '_cascade_running', False):
-                    break
-                s = dev['serial']
-                self.log_msg(f" [Bot] Comentando en {s[-4:]}...", "info")
-                try:
-                    self.interact_kick_stream(s)
-                except Exception as e:
-                    self.log_msg(f" [Bot] Error en {s[-4:]}: {e}", "error")
+            batch_size = 1
+            if hasattr(self, 'batch_size_var'):
+                val = self.batch_size_var.get()
+                if val == "Todos": batch_size = len(devices)
+                else:
+                    try: batch_size = int(val)
+                    except: batch_size = 1
 
-                if not getattr(self, '_cascade_running', False):
-                    break
+            # Dividir dispositivos en lotes
+            for i in range(0, len(devices), batch_size):
+                if not getattr(self, '_cascade_running', False): break
+                
+                batch = devices[i:i+batch_size]
+                
+                def process_dev(dev):
+                    if not getattr(self, '_cascade_running', False): return
+                    s = dev['serial']
+                    self.log_msg(f" [Bot] Comentando en {s[-4:]}...", "info")
+                    try:
+                        self.interact_kick_stream(s)
+                    except Exception as e:
+                        self.log_msg(f" [Bot] Error en {s[-4:]}: {e}", "error")
+                
+                with ThreadPoolExecutor(max_workers=batch_size) as executor:
+                    executor.map(process_dev, batch)
 
-                # Esperar el intervalo entre dispositivos (con check de stop cada 5s)
-                self.log_msg(f" [Bot] Esperando {interval_str} hasta el proximo comentario...", "info")
+                if not getattr(self, '_cascade_running', False): break
+
+                # Esperar intervalo antes del proximo lote
+                self.log_msg(f" [Bot] Lote terminado. Esperando {interval_str}...", "info")
                 for _ in range(interval_sec // 5):
-                    if not getattr(self, '_cascade_running', False):
-                        break
+                    if not getattr(self, '_cascade_running', False): break
                     time.sleep(5)
 
         self.log_msg(" [Bot] Loop terminado.", "info")
@@ -2692,52 +2746,61 @@ class MarketingeoApp(ctk.CTk):
     def inject_kick(self):
         self.stop_social_threads = False
         if not hasattr(self, 'engine') or not getattr(self.engine, 'active_devices', []):
-            self.log_msg("⚠️ El túnel no está iniciado.", "warn")
+            self.log_msg(" El túnel no está iniciado.", "warn")
             return
         urls = [u.strip() for u in self.kick_textbox.get("1.0", "end").strip().split('\n') if u.strip()]
         if not urls:
-            self.log_msg("⚠️ La caja de texto de Kick está vacía. Pega un link primero.", "warn")
+            self.log_msg(" La caja de texto de Kick está vacía. Pega un link primero.", "warn")
             return
-        import random
+            
+        import threading
+        
+        if hasattr(self, 'btn_kick'):
+            self.btn_kick.configure(text=" 🟢 Inyectando Visitas...", fg_color="#F59E0B")
+            
         def _bot():
-            for dev in self.engine.active_devices:
-                if getattr(self, "stop_social_threads", False): break
+            import random
+            import time
+            from concurrent.futures import ThreadPoolExecutor
+            
+            batch_size = 1
+            if hasattr(self, 'batch_size_var'):
+                val = self.batch_size_var.get()
+                if val == "Todos":
+                    batch_size = len(self.engine.active_devices)
+                else:
+                    try: batch_size = int(val)
+                    except: batch_size = 1
+            else:
+                batch_size = len(self.engine.active_devices)
+
+            def process_dev(dev):
+                if getattr(self, "stop_social_threads", False): return
                 url = random.choice(urls)
                 s = dev['serial']
                 self.log_msg(f"Abriendo Kick URL en {s}...", "info")
                 
-                # Cierra otras apps y refresca Kick
                 self._cleanup_background_apps(s, exclude_pkg="com.kick.mobile")
                 self.adb.run_command(["shell", "am", "force-stop", "com.kick.mobile"], s)
                 time.sleep(1)
                 
                 self.adb.run_command(["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", f"'{url}'", "com.kick.mobile"], s)
-                self.log_msg(f"[Kick] Esperando 20s a que cargue el stream...", "info")
-                time.sleep(20) # Esperar a que cargue el stream + chat
+                self.log_msg(f"[{s[-4:]}] Esperando 20s a que cargue el stream...", "info")
+                time.sleep(20)
                 
-                # Interacción de Kick (Reglas y Chat)
-                self.interact_kick_stream(s)
-                
-                if self.kick_auto.get():
-                    def _keepalive(serial):
-                        import random
-                        for loop_count in range(30):
-                            for _ in range(60):
-                                if getattr(self, 'stop_social_threads', False): return
-                                time.sleep(1)
-                                
-                            # Tocar una esquina superior para mantener viva la pantalla
-                            self.adb.run_command(["shell", "input", "tap", "10", "300"], serial)
-                            
-                            # Motor de Chat Continuo (Cada ~10 minutos = 10 iteraciones de 60s)
-                            if loop_count % 10 == 0 and loop_count > 0:
-                                self._kick_chat_engine(serial)
-                    threading.Thread(target=_keepalive, args=(s,), daemon=True).start()
-                    self.log_msg(f"🛡️ Keep-Alive iniciado en {s}", "info")
-                time.sleep(2)
-        threading.Thread(target=_bot, daemon=True).start()
-        self.log_msg("🟩 Inyectando Kick...", "info")
+                # Se envia comentario inicial opcionalmente si es necesario, lo quitamos para que sea mas limpio y el cascada haga el trabajo duro.
+                # Pero el viejo si comentaba, llamando self.interact_kick_stream(s). 
+                # Se deja solo abriendo la app. El chat en cascada hara los comentarios segun su timer.
 
+            with ThreadPoolExecutor(max_workers=batch_size) as executor:
+                executor.map(process_dev, self.engine.active_devices)
+                
+            self.log_msg(" ✅ Inyección Kick Terminada.", "success")
+            if hasattr(self, 'btn_kick'):
+                self.after(0, lambda: self.btn_kick.configure(text=" 2. Inyectar Visitas Kick", fg_color="#16A34A"))
+
+        threading.Thread(target=_bot, daemon=True).start()
+        self.log_msg(" Iniciando hilos de inyección en lote...", "info")
 
     def build_accounts_tab(self):
         self.tab_accounts.grid_columnconfigure(0, weight=1)
@@ -2745,7 +2808,7 @@ class MarketingeoApp(ctk.CTk):
         self.tab_accounts.grid_rowconfigure(0, weight=1)
         
         # Panel izquierdo (Controles y Logs)
-        left_frame = ctk.CTkFrame(self.tab_accounts, fg_color="transparent")
+        left_frame = ctk.CTkScrollableFrame(self.tab_accounts, fg_color="transparent")
         left_frame.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
         
         ctk.CTkLabel(left_frame, text="🤖 Creador de Cuentas (Redes Sociales)", font=("Arial", 20, "bold"), text_color="#3B82F6").pack(pady=(0, 20))
@@ -2950,19 +3013,35 @@ class MarketingeoApp(ctk.CTk):
             
         selected = [dev for dev in self.engine.active_devices if dev['serial'] in self.acc_device_checkboxes and self.acc_device_checkboxes[dev['serial']].get()]
         if not selected:
-            # If no accounts are selected, just do all active devices
             selected = self.engine.active_devices
             
-        self.acc_log(f" [Kick] Iniciando Verificación/Login en {len(selected)} dispositivos...", "info")
+        self.acc_log(f" [Kick] Iniciando Pre-Check en {len(selected)} dispositivos...", "info")
+        
+        # UI Indicator
+        if hasattr(self, 'btn_kick_login'):
+            self.btn_kick_login.configure(text=" ⏳ Procesando Pre-Check...", fg_color="#F59E0B")
+        
         import threading
         threading.Thread(target=self._master_kick_google_login_thread, args=(selected,), daemon=True).start()
 
     def _master_kick_google_login_thread(self, selected):
         import time
         import xml.etree.ElementTree as ET
-        for i, dev in enumerate(selected):
+        from concurrent.futures import ThreadPoolExecutor
+        
+        # Read batch size if exists, otherwise 1
+        batch_size = 1
+        if hasattr(self, 'batch_size_var'):
+            val = self.batch_size_var.get()
+            if val == "Todos":
+                batch_size = len(selected)
+            else:
+                try: batch_size = int(val)
+                except: batch_size = 1
+
+        def check_device(dev):
             s = dev['serial']
-            self.acc_log(f" [{s[-4:]}] Verificando sesión actual de Kick...", "info")
+            self.acc_log(f" [{s[-4:]}] Verificando sesion actual de Kick...", "info")
             self.adb.run_command(["shell", "am", "force-stop", "com.kick.mobile"], s)
             time.sleep(1)
             self.adb.run_command(["shell", "am", "start", "-n", "com.kick.mobile/com.kick.mobile.MainActivity"], s)
@@ -2977,37 +3056,32 @@ class MarketingeoApp(ctk.CTk):
                     
                 texts = [n.get("text", "").lower() for n in root.iter("node")]
                 
-                # Si vemos los botones de login directo, cortamos y logueamos.
                 if any("log in" in t or "iniciar" in t or "inicia" in t or "sign up" in t for t in texts):
                     needs_login = True
                     break
                     
-                # Si vemos el men principal de alguien logueado ("creadores destacados", "siguiendo")
-                # Y NO estamos viendo la palabra "cargando..." o "conectndose al chat..." (tpico de un stream)
-                if any("creadores destacados" in t or "siguiendo" in t for t in texts) and not any("conectndose al chat" in t or "cargando" in t for t in texts):
+                if any("creadores destacados" in t or "siguiendo" in t for t in texts) and not any("conectándose al chat" in t or "cargando" in t for t in texts):
                     needs_login = False
                     break
-                    
-                # Si llegamos aqu, o es un stream reanudado o un pop-up raro.
-                # Le damos Atrs (una sola vez) para intentar minimizar el stream y volver al men.
-                self.acc_log(f" [{s[-4:]}] Posible stream reanudado. Forzando regreso al men...", "info")
-                self.adb.run_command(["shell", "input", "keyevent", "4"], s)
-                time.sleep(3)
-                
-            # Si despus de los intentos no determinamos nada claro, forzamos login por si acaso.
-            # En la prctica, el break maneja los casos claros.
+                time.sleep(2)
                 
             if needs_login:
-                self.acc_log(f" [{s[-4:]}] Kick cerrado. Iniciando Auto-Login...", "warn")
-                success = self._kick_google_login_thread(s)
-                if not success:
-                    self.acc_log(f" [{s[-4:]}] Falló login de Kick.", "error")
+                self.acc_log(f" [{s[-4:]}] Requiere Login Manual.", "warn")
+                if hasattr(self, 'acc_device_checkboxes') and s in self.acc_device_checkboxes:
+                    self.after(0, lambda s=s: self.acc_device_checkboxes[s].configure(text=f"{s} ❌", text_color="#EF4444"))
             else:
-                self.acc_log(f" [{s[-4:]}] ✅ Sesión confirmada en Kick. Omitiendo...", "success")
+                self.acc_log(f" [{s[-4:]}] Sesion OK.", "success")
                 if hasattr(self, 'acc_device_checkboxes') and s in self.acc_device_checkboxes:
                     self.after(0, lambda s=s: self.acc_device_checkboxes[s].configure(text=f"{s} ✅", text_color="#10B981"))
-            time.sleep(2)
-        self.acc_log(" [Kick] Proceso de Verificación/Login Terminado.", "success")
+                    # Desmarcar para que el usuario pueda reintentar solo los que fallaron
+                    self.after(0, lambda s=s: self.acc_device_checkboxes[s].deselect())
+
+        with ThreadPoolExecutor(max_workers=batch_size) as executor:
+            executor.map(check_device, selected)
+            
+        self.acc_log(" [Kick] Proceso de Verificacion Terminado.", "success")
+        if hasattr(self, 'btn_kick_login'):
+            self.after(0, lambda: self.btn_kick_login.configure(text=" 1. Pre-Check (Loguear Cuentas)", fg_color="#2563EB"))
 
     def _kick_google_login_thread(self, serial):
         import time
