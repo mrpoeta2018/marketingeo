@@ -2032,7 +2032,7 @@ class MarketingeoApp(ctk.CTk):
         interval_row = ctk.CTkFrame(bot_frame, fg_color="transparent")
         interval_row.pack(fill="x", padx=15, pady=(0,5))
         ctk.CTkLabel(interval_row, text="Intervalo entre comentarios:", font=("Arial", 12), text_color="white").pack(side="left")
-        self.kick_bot_interval = ctk.CTkOptionMenu(interval_row, values=["5 min", "7 min", "10 min", "15 min"], width=100)
+        self.kick_bot_interval = ctk.CTkOptionMenu(interval_row, values=["2 min", "4 min", "6 min", "8 min", "10 min", "15 min", "20 min", "30 min"], width=100)
         self.kick_bot_interval.pack(side="left", padx=10)
         self.kick_bot_interval.set("7 min")
         btn_row = ctk.CTkFrame(bot_frame, fg_color="transparent")
