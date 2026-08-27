@@ -1985,10 +1985,10 @@ class MarketingeoApp(ctk.CTk):
         self.kick_bot_interval.set("7 min")
         btn_row = ctk.CTkFrame(bot_frame, fg_color="transparent")
         btn_row.pack(fill="x", padx=15, pady=(0,10))
-        self.self.kick_bot_start_btn = ctk.CTkButton(btn_row, text="INICIAR BOT", fg_color="#16a34a", hover_color="#15803d", font=("Arial", 13, "bold"), command=self.start_cascade_bot)
-        self.self.kick_bot_start_btn.pack(side="left", padx=(0,10))
-        self.self.kick_bot_stop_btn = ctk.CTkButton(btn_row, text="DETENER BOT", fg_color="#dc2626", hover_color="#b91c1c", font=("Arial", 13, "bold"), command=self.stop_cascade_bot)
-        self.self.kick_bot_stop_btn.pack(side="left")
+        self.kick_bot_start_btn = ctk.CTkButton(btn_row, text="INICIAR BOT", fg_color="#16a34a", hover_color="#15803d", font=("Arial", 13, "bold"), command=self.start_cascade_bot)
+        self.kick_bot_start_btn.pack(side="left", padx=(0,10))
+        self.kick_bot_stop_btn = ctk.CTkButton(btn_row, text="DETENER BOT", fg_color="#dc2626", hover_color="#b91c1c", font=("Arial", 13, "bold"), command=self.stop_cascade_bot)
+        self.kick_bot_stop_btn.pack(side="left")
         self.kick_auto = ctk.BooleanVar(value=False)  # compat
         self.kick_interact = ctk.BooleanVar(value=False)  # compat
         
