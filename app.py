@@ -1977,6 +1977,15 @@ class MarketingeoApp(ctk.CTk):
         bot_frame = ctk.CTkFrame(kick_frame, fg_color="#1a1a2e", corner_radius=10)
         bot_frame.pack(fill="x", padx=20, pady=(0, 10))
         ctk.CTkLabel(bot_frame, text="Bot de Comentarios en Cascada", font=("Arial", 14, "bold"), text_color="#9333EA").pack(anchor="w", padx=15, pady=(10,5))
+        
+        # Checkboxes for type of interaction
+        type_row = ctk.CTkFrame(bot_frame, fg_color="transparent")
+        type_row.pack(fill="x", padx=15, pady=(0, 5))
+        self.kick_bot_type_comments = ctk.BooleanVar(value=True)
+        self.kick_bot_type_emojis = ctk.BooleanVar(value=False)
+        ctk.CTkCheckBox(type_row, text="Texto", variable=self.kick_bot_type_comments, font=("Arial", 12)).pack(side="left", padx=(0,10))
+        ctk.CTkCheckBox(type_row, text="Emojis Verdes", variable=self.kick_bot_type_emojis, font=("Arial", 12)).pack(side="left")
+
         interval_row = ctk.CTkFrame(bot_frame, fg_color="transparent")
         interval_row.pack(fill="x", padx=15, pady=(0,5))
         ctk.CTkLabel(interval_row, text="Intervalo entre comentarios:", font=("Arial", 12), text_color="white").pack(side="left")
@@ -2593,9 +2602,25 @@ class MarketingeoApp(ctk.CTk):
                 def process_dev(dev):
                     if not getattr(self, '_cascade_running', False): return
                     s = dev['serial']
-                    self.log_msg(f" [Bot] Comentando en {s[-4:]}...", "info")
+                    
+                    do_comments = getattr(self, 'kick_bot_type_comments', None) and self.kick_bot_type_comments.get()
+                    do_emojis = getattr(self, 'kick_bot_type_emojis', None) and self.kick_bot_type_emojis.get()
+                    
+                    if not do_comments and not do_emojis:
+                        self.log_msg(f" [Bot] Advertencia: Ni texto ni emojis seleccionados.", "warn")
+                        return
+
                     try:
-                        self.interact_kick_stream(s)
+                        if do_comments:
+                            self.log_msg(f" [Bot] Enviando Texto en {s[-4:]}...", "info")
+                            self.interact_kick_stream(s)
+                            if do_emojis:
+                                time.sleep(3) # Pausa breve si va a mandar ambos
+                                
+                        if do_emojis:
+                            self.log_msg(f" [Bot] Enviando Emoji en {s[-4:]}...", "info")
+                            self.send_kick_emote(s)
+                            
                     except Exception as e:
                         self.log_msg(f" [Bot] Error en {s[-4:]}: {e}", "error")
                 
@@ -2742,6 +2767,111 @@ class MarketingeoApp(ctk.CTk):
         # ESCAPE baja el teclado sin minimizar el video ni tocar nada mas
         self.adb.run_command(["shell", "input", "keyevent", "111"], s)
         self.log_msg(f" [{s[-4:]}] ✅ Mensaje enviado.", "info")
+
+    def send_kick_emote(self, s):
+        """Encuentra el boton de emotes, lo abre, elige uno aleatorio y lo envia."""
+        import time
+        import re
+        import random
+        
+        # 1. Medir pantalla real del dispositivo
+        stdout, _, _ = self.adb.run_command(["shell", "wm", "size"], s)
+        width, height = 480, 960
+        match = re.search(r"(\d+)x(\d+)", stdout or "")
+        if match:
+            width, height = int(match.group(1)), int(match.group(2))
+        
+        self.log_msg(f" [{s[-4:]}] Escaneando para enviar Emoji Verde...", "info")
+        
+        # 2. Despertar
+        self.adb.run_command(["shell", "input", "tap", str(width//2), str(height//2)], s)
+        time.sleep(1.0)
+        
+        emote_btn_x, emote_btn_y = None, None
+        send_btn_x, send_btn_y = None, None
+        
+        # 3. Buscar el boton "emote" (la carita) y el boton "send"
+        for intento in range(3):
+            root = getattr(self, 'pull_and_parse', lambda x: None)(s)
+            if root is not None:
+                lower_third = height * 0.7
+                for n in root.iter("node"):
+                    desc_val = n.get("content-desc", "").lower()
+                    bounds = n.get("bounds", "")
+                    if not bounds: continue
+                    coords = [int(c) for c in bounds.replace("][", ",").replace("[", "").replace("]", "").split(",")]
+                    cx = (coords[0] + coords[2]) // 2
+                    cy = (coords[1] + coords[3]) // 2
+                    
+                    if cy < lower_third: continue
+                    
+                    if desc_val == "emote":
+                        emote_btn_x, emote_btn_y = cx, cy
+                    elif desc_val == "send":
+                        send_btn_x, send_btn_y = cx, cy
+                        
+                if emote_btn_x and emote_btn_y:
+                    break
+            
+            self.log_msg(f" [{s[-4:]}]  Buscando boton de emojis... (Intento {intento+1}/3)", "warn")
+            time.sleep(5)
+            
+        if not emote_btn_x or not emote_btn_y:
+            self.log_msg(f" [{s[-4:]}] ❌ No se encontro boton de Emojis.", "error")
+            return
+            
+        self.log_msg(f" [{s[-4:]}] ✅ Boton de emojis encontrado. Abriendo...", "success")
+        self.adb.run_command(["shell", "input", "tap", str(emote_btn_x), str(emote_btn_y)], s)
+        time.sleep(2.0) # Esperar que suba el cajon de emojis
+        
+        # 4. Tocar un emoji aleatorio en el panel.
+        # Por lo general, los emojis estan en una cuadricula justo por encima del boton emote
+        # Haremos varios toques ligeros en la zona del panel de emotes
+        emoji_x = width // 2
+        emoji_y = height - 400 # ~200px arriba del boton emote (depende de la resolucion)
+        
+        # Ajustamos el Y segun la altura:
+        # El drawer suele tomar unos 300px desde abajo
+        panel_y = height - 250
+        
+        # Tocar uno aleatorio en el centro
+        self.adb.run_command(["shell", "input", "tap", str(random.randint(width//3, width*2//3)), str(panel_y)], s)
+        time.sleep(1.0)
+        
+        # A veces Kick requiere 2 toques, tocamos otro por si acaso
+        self.adb.run_command(["shell", "input", "tap", str(random.randint(width//4, width//2)), str(panel_y + 50)], s)
+        time.sleep(1.0)
+        
+        # 5. Volver a buscar el boton send, porque a veces cambia de posicion al abrir emojis
+        root = getattr(self, 'pull_and_parse', lambda x: None)(s)
+        if root is not None:
+            for n in root.iter("node"):
+                if n.get("content-desc", "").lower() == "send":
+                    bounds = n.get("bounds", "")
+                    if bounds:
+                        coords = [int(c) for c in bounds.replace("][", ",").replace("[", "").replace("]", "").split(",")]
+                        send_btn_x = (coords[0] + coords[2]) // 2
+                        send_btn_y = (coords[1] + coords[3]) // 2
+                        break
+        
+        if send_btn_x and send_btn_y:
+            self.log_msg(f" [{s[-4:]}] ✅ Boton enviar encontrado. Enviando Emoji...", "success")
+            self.adb.run_command(["shell", "input", "tap", str(send_btn_x), str(send_btn_y)], s)
+        else:
+            # Fallback de coordenadas si no encuentra el boton despues de abrir el panel
+            # Usamos las coordenadas del boton enviar antes de abrir el panel
+            self.log_msg(f" [{s[-4:]}] ⚠️ Usando coordenadas de enviar anteriores...", "warn")
+            self.adb.run_command(["shell", "input", "tap", str(width - 50), str(height - 150)], s) # aproximado
+            
+        time.sleep(1.0)
+        
+        # 6. Bajar el teclado / panel (con boton BACK o ESCAPE)
+        self.adb.run_command(["shell", "input", "keyevent", "111"], s) # ESCAPE
+        time.sleep(0.5)
+        self.adb.run_command(["shell", "input", "keyevent", "4"], s) # BACK por si el ESCAPE no cierra el panel de emotes
+        
+        self.log_msg(f" [{s[-4:]}] 🟢 Emoji Enviado Correctamente.", "success")
+
 
     def inject_kick(self):
         self.stop_social_threads = False
