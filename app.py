@@ -943,8 +943,12 @@ class MarketingeoApp(ctk.CTk):
         self.reset_adb_btn = ctk.CTkButton(scan_frame, text="🔌 Reset USB", command=self.restart_adb_server, fg_color="#EF4444")
         self.reset_adb_btn.pack(side="right", padx=(0, 10), expand=True, fill="x")
         
-        self.install_btn = ctk.CTkButton(frame, text="⚙️ 2. Instalar Motor de Red (Gnirehtet)", command=self.install_gnirehtet, fg_color="green", font=("Arial", 14, "bold"), height=35)
-        self.install_btn.pack(pady=10, padx=10, fill="x")
+        install_frame = ctk.CTkFrame(frame, fg_color="transparent")
+        install_frame.pack(fill="x", pady=10)
+        self.install_btn = ctk.CTkButton(install_frame, text="⚙️ 2. Instalar Motor Red", command=self.install_gnirehtet, fg_color="green", font=("Arial", 12, "bold"), height=35)
+        self.install_btn.pack(side="left", padx=10, expand=True, fill="x")
+        self.uninstall_btn = ctk.CTkButton(install_frame, text="🗑️ Quitar Motor", command=self.uninstall_gnirehtet, fg_color="#991B1B", hover_color="#7F1D1D", font=("Arial", 12, "bold"), height=35)
+        self.uninstall_btn.pack(side="right", padx=(0,10), expand=True, fill="x")
 
         self.assign_btn = ctk.CTkButton(frame, text="🎯 ASIGNAR PROXYS A DISPOSITIVOS", command=self.assign_proxies, fg_color="#F59E0B", font=("Arial", 14, "bold"), height=35)
         self.assign_btn.pack(pady=10, padx=10, fill="x")
@@ -1205,77 +1209,25 @@ class MarketingeoApp(ctk.CTk):
             with open("config.json", "r") as f:
                 import json
                 data = json.load(f)
-                if "batch" in data:
-                    self.batch_entry.delete(0, "end")
-                    self.batch_entry.insert(0, str(data["batch"]))
-                if "mins" in data:
-                    self.mins_entry.delete(0, "end")
-                    self.mins_entry.insert(0, str(data["mins"]))
-                if "proxies" in data:
+                
+                if "proxies" in data and hasattr(self, 'proxy_textbox'):
                     self.proxy_textbox.delete("1.0", "end")
                     self.proxy_textbox.insert("1.0", data["proxies"].strip() + "\n")
-                if "playlists" in data:
-                    self.spotify_normal_urls = data["playlists"].strip()
-                    self.playlist_textbox.delete("1.0", "end")
-                    self.playlist_textbox.insert("1.0", self.spotify_normal_urls + "\n")
-                if "tracks" in data and hasattr(self, 'tracks_textbox'):
-                    self.tracks_textbox.delete("1.0", "end")
-                    self.tracks_textbox.insert("1.0", data["tracks"].strip() + "\n")
-                if "spotify_clone_url" in data:
-                    self.spotify_clone_url = data["spotify_clone_url"].strip()
-                if "master_mode" in data:
-                    self.master_mode.set(data["master_mode"])
-                if "playlist_interval" in data:
-                    self.playlist_interval.set(data["playlist_interval"])
-                if "youtube_playlists" in data:
-                    self.youtube_textbox.delete("1.0", "end")
-                    self.youtube_textbox.insert("1.0", data["youtube_playlists"].strip() + "\n")
-                if "yt_music_playlists" in data:
-                    if hasattr(self, 'ytmusic_textbox'):
-                        self.ytmusic_textbox.delete("1.0", "end")
-                        self.ytmusic_textbox.insert("1.0", data["yt_music_playlists"].strip() + "\n")
-                if "youtube_drip" in data:
-                    self.youtube_drip_var.set(data["youtube_drip"])
-                if "watchdog_enabled" in data:
-                    self.watchdog_enabled.set(data["watchdog_enabled"])
-                if "ghost_enabled" in data:
-                    self.ghost_enabled.set(data["ghost_enabled"])
-                    
-                if hasattr(self, 'awa_textbox') and "awa_playlists" in data:
-                    self.awa_textbox.delete("1.0", "end")
-                    self.awa_textbox.insert("1.0", data["awa_playlists"].strip() + "\n")
-                if hasattr(self, 'sc_textbox') and "sc_playlists" in data:
-                    self.sc_textbox.delete("1.0", "end")
-                    self.sc_textbox.insert("1.0", data["sc_playlists"].strip() + "\n")
-                if hasattr(self, 'pan_textbox') and "pan_playlists" in data:
-                    self.pan_textbox.delete("1.0", "end")
-                    self.pan_textbox.insert("1.0", data["pan_playlists"].strip() + "\n")
-                if hasattr(self, 'am_textbox') and "am_playlists" in data:
-                    self.am_textbox.delete("1.0", "end")
-                    self.am_textbox.insert("1.0", data["am_playlists"].strip() + "\n")
-                if hasattr(self, 'apl_textbox') and "apl_playlists" in data:
-                    self.apl_textbox.delete("1.0", "end")
-                    self.apl_textbox.insert("1.0", data["apl_playlists"].strip() + "\n")
+                
                 if hasattr(self, 'ig_textbox') and "ig_playlists" in data:
                     self.ig_textbox.delete("1.0", "end")
                     self.ig_textbox.insert("1.0", data["ig_playlists"].strip() + "\n")
+                    
                 if hasattr(self, 'kick_textbox') and "kick_playlists" in data:
                     self.kick_textbox.delete("1.0", "end")
                     self.kick_textbox.insert("1.0", data["kick_playlists"].strip() + "\n")
-                if hasattr(self, 'ig_auto') and "ig_auto" in data: self.ig_auto.set(data["ig_auto"])
-                if hasattr(self, 'kick_auto') and "kick_auto" in data: self.kick_auto.set(data["kick_auto"])
-                if hasattr(self, 'use_spotify') and "use_spotify" in data: self.use_spotify.set(data["use_spotify"])
-                if hasattr(self, 'use_ytmusic') and "use_ytmusic" in data: self.use_ytmusic.set(data["use_ytmusic"])
-                if hasattr(self, 'use_ytvideo') and "use_ytvideo" in data: self.use_ytvideo.set(data["use_ytvideo"])
-                if hasattr(self, 'use_awa') and "use_awa" in data: self.use_awa.set(data["use_awa"])
-                if hasattr(self, 'use_sc') and "use_sc" in data: self.use_sc.set(data["use_sc"])
-                if hasattr(self, 'use_pan') and "use_pan" in data: self.use_pan.set(data["use_pan"])
-                if hasattr(self, 'use_am') and "use_am" in data: self.use_am.set(data["use_am"])
-                if hasattr(self, 'use_apl') and "use_apl" in data: self.use_apl.set(data["use_apl"])
                     
-                self.infinite_var.set(data.get("infinite", True))
-                self.stealth_var.set(data.get("stealth", True))
-                self.no_proxy_var.set(data.get("no_proxy", False))
+                if hasattr(self, 'kick_chat_textbox') and "kick_chat" in data:
+                    self.kick_chat_textbox.delete("1.0", "end")
+                    self.kick_chat_textbox.insert("1.0", data["kick_chat"].strip() + "\n")
+                    
+                if hasattr(self, 'no_proxy_var'):
+                    self.no_proxy_var.set(data.get("no_proxy", False))
                 if hasattr(self, 'bot_only_var'):
                     self.bot_only_var.set(data.get("bot_only", False))
         except:
@@ -1437,17 +1389,7 @@ class MarketingeoApp(ctk.CTk):
     def update_selection_count(self):
         total = len(self.device_selections)
         selected = sum(1 for v in self.device_selections.values() if v.get())
-        # Show count and hint about batch vs selected
-        try:
-            batch = int(self.batch_entry.get())
-        except ValueError:
-            batch = selected
-        if selected > 0 and batch > selected:
-            self.selection_count_lbl.configure(text=f"{selected} de {total} sel. (lote {batch} > sel., se usarán {selected})")
-        elif selected > 0 and batch < selected:
-            lotes = -(-selected // batch)  # ceil division
-            self.selection_count_lbl.configure(text=f"{selected} de {total} sel. → {lotes} lotes de {batch}")
-        else:
+        if hasattr(self, 'selection_count_lbl') and self.selection_count_lbl.winfo_exists():
             self.selection_count_lbl.configure(text=f"{selected} de {total} seleccionados")
 
     def get_selected_devices(self):
@@ -1553,6 +1495,21 @@ class MarketingeoApp(ctk.CTk):
             self.save_config()
 
         ProxyTesterWindow(self, formatted, _on_test_finish)
+
+    def uninstall_gnirehtet(self):
+        selected = self.get_selected_devices()
+        if not selected:
+            messagebox.showerror("Error", "Selecciona al menos un dispositivo para desinstalar Gnirehtet.")
+            return
+        if messagebox.askyesno("Confirmar", f"¿Desinstalar Motor de Red (Gnirehtet) en {len(selected)} dispositivos?\nEsto permitirá que usen su Wi-Fi normal."):
+            def _uninstall():
+                self.log_msg(f"🗑️ Desinstalando Gnirehtet en {len(selected)} dispositivos...", "warn")
+                for dev in selected:
+                    s = dev['serial']
+                    self.adb.run_command(["uninstall", "com.genymobile.gnirehtet"], s)
+                self.after(0, lambda: self.log_msg("✅ Desinstalación completada.", "info"))
+            import threading
+            threading.Thread(target=_uninstall, daemon=True).start()
 
     def install_gnirehtet(self):
         devices = self.adb.list_devices()
@@ -1882,9 +1839,7 @@ class MarketingeoApp(ctk.CTk):
         else:
             self.repair_btn.configure(state="disabled")
 
-        # Auto-apply current sort if one is active
-        if self.traf_sort_mode:
-            self.sort_traffic(self.traf_sort_mode)
+
 
     def sort_traffic(self, mode):
         """Reorder traffic widgets by serial or connection status."""
