@@ -2856,12 +2856,12 @@ class MarketingeoApp(ctk.CTk):
             time.sleep(3)
             
         if not chat_y:
-            self.log_msg(f" [{s[-4:]}] ❌ No se encontro chat (¿Stream offline?). Abortando emoji.", "error")
-            return
-            
-        # La barra de emojis rapidos esta aprox 8% de la pantalla por encima del chat
-        offset_y = int(height * 0.08)
-        quick_emote_y = chat_y - offset_y
+            self.log_msg(f" [{s[-4:]}] ⚠️ Scanner bloqueado por el video en vivo. Usando cálculo proporcional para Emojis.", "warn")
+            quick_emote_y = int(height * 0.74) # Aprox 74% de la altura
+        else:
+            # La barra de emojis rapidos esta aprox 8% de la pantalla por encima del chat
+            offset_y = int(height * 0.08)
+            quick_emote_y = chat_y - offset_y
         
         cantidad = random.randint(1, 2)
         self.log_msg(f" [{s[-4:]}] ✅ Tocando {cantidad} emojis directos en la barra superior...", "success")
