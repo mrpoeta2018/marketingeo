@@ -285,6 +285,8 @@ class PanicProgressWindow(ctk.CTkToplevel):
         
         devices = self.adb.list_devices()
         total = len(devices)
+        success_count = 0
+        failed_devices = []
         if total == 0:
             self.progress.set(0.9)
         else:
@@ -649,6 +651,11 @@ class MarketingeoApp(ctk.CTk):
         self.tab_ig = self.tabview.add(" Mdulo Instagram")
         self.tab_accounts = self.tabview.add(" Creador de Cuentas")
         self.tab_labs = self.tabview.add(" Laboratorio (Prximas Redes)")
+
+        # Global Log Frame
+        self.log_frame = ctk.CTkTextbox(self, height=120)
+        self.log_frame.pack(padx=20, pady=(0, 10), fill="x")
+        self.log_frame.configure(state="disabled")
         
         self.batch_size_sync_id = None
         self.tips = [
@@ -980,10 +987,7 @@ class MarketingeoApp(ctk.CTk):
         self.dev_frame.pack(fill="both", expand=True)
         self.device_widgets = []
         
-        # Log
-        self.log_frame = ctk.CTkTextbox(self.tab_ctrl, height=120)
-        self.log_frame.grid(row=2, column=0, columnspan=2, pady=10, padx=10, sticky="ew")
-        self.log_frame.configure(state="disabled")
+
 
     def build_traffic_tab(self):
         # MODO MAESTRO
@@ -2891,7 +2895,8 @@ class MarketingeoApp(ctk.CTk):
                     email_memory = json.load(mf)
             except: pass
             
-        is_slow = getattr(self, "acc_slow_mode_var", type('obj',(object,),{'get':lambda:False})()).get()
+        is_slow = getattr(self, "acc_slow_mode_var", None)
+        is_slow = is_slow.get() if is_slow else False
         def s_sleep(base_time):
             total = base_time * 2.5 if is_slow else base_time
             time.sleep(total)
