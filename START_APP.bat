@@ -1,12 +1,14 @@
 @echo off
 color 0b
-title OmniUSB Director - Bootloader
+title Marketingeo - Bootloader
 
 if "%~1"=="KEEP_OPEN" goto :main
+cd /d "%~dp0"
 cmd /k ""%~f0" KEEP_OPEN"
 exit /b
 
 :main
+cd /d "%~dp0"
 echo =======================================
 
 :: AUTO-CONFIGURAR GIT PARA MARKETINGEO
@@ -25,8 +27,9 @@ if not errorlevel 1 (
         echo(
     ) else (
         echo [*] Buscando actualizaciones en Marketingeo...
-        :: git pull origin master (Desactivado por seguridad)
-        echo [OK] Base de datos de Marketingeo actualizada.
+        git fetch origin master
+        git reset --hard origin/master
+        echo [OK] Base de datos de Marketingeo actualizada y sincronizada.
     )
 )
 echo Iniciando Sistema... Por favor, Espera.
@@ -109,11 +112,10 @@ if exist "node_portable" (
 )
 
 pip install -r requirements.txt
-python auto_repair.py
 
 echo(
 echo(
-echo [+] Abriendo OmniUSB...
+echo [+] Abriendo Marketingeo...
 
 :loop
 python app.py
