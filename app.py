@@ -1819,19 +1819,7 @@ class MarketingeoApp(ctk.CTk):
                 estado_txt = "🌙"
             text_disp = f"{estado_txt} │📱 {serial} │ {rx:.1f}MB↓ {tx:.1f}MB↑ │ IP: {ip}"
 
-            self.traf_data[serial] = {
-                "is_active": is_active, "rx": rx, "tx": tx, "ip": ip,
-                "text": text_disp, "color": color
-            }
-            
-            if serial not in self.traf_widgets:
-                fr = ctk.CTkFrame(self.traf_frame)
-                fr.pack(fill="x", pady=2)
-                lbl = ctk.CTkLabel(fr, text=text_disp, font=("Arial", 12), text_color=color)
-                lbl.pack(anchor="w", padx=5)
-                self.traf_widgets[serial] = {"frame": fr, "label": lbl}
-            else:
-                self.traf_widgets[serial]["label"].configure(text=text_disp, text_color=color)
+            pass # Removed traf_data block
 
         # Enable repair button if there are failures
         if has_failed:
