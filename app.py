@@ -1973,11 +1973,24 @@ class MarketingeoApp(ctk.CTk):
         
         ctk.CTkLabel(kick_frame, text="🟢 Kick Automator", font=("Arial", 24, "bold"), text_color="#22C55E").pack(pady=20)
         
-        self.kick_auto = ctk.BooleanVar(value=True)
-        ctk.CTkCheckBox(kick_frame, text=" 👁️ Auto-KeepAlive (Evitar Sleep/Pausa)", font=("Arial", 14, "bold"), text_color="white", variable=self.kick_auto).pack(anchor="w", padx=30, pady=5)
-        
-        self.kick_interact = ctk.BooleanVar(value=False)
-        ctk.CTkCheckBox(kick_frame, text=" 💬 Interacción Avanzada (Auto-Chatear en intervalos)", font=("Arial", 13), text_color="white", variable=self.kick_interact).pack(anchor="w", padx=30, pady=(0,20))
+        # --- Bot en Cascada ---
+        bot_frame = ctk.CTkFrame(kick_frame, fg_color="#1a1a2e", corner_radius=10)
+        bot_frame.pack(fill="x", padx=20, pady=(0, 10))
+        ctk.CTkLabel(bot_frame, text="Bot de Comentarios en Cascada", font=("Arial", 14, "bold"), text_color="#9333EA").pack(anchor="w", padx=15, pady=(10,5))
+        interval_row = ctk.CTkFrame(bot_frame, fg_color="transparent")
+        interval_row.pack(fill="x", padx=15, pady=(0,5))
+        ctk.CTkLabel(interval_row, text="Intervalo entre comentarios:", font=("Arial", 12), text_color="white").pack(side="left")
+        self.kick_bot_interval = ctk.CTkOptionMenu(interval_row, values=["5 min", "7 min", "10 min", "15 min"], width=100)
+        self.kick_bot_interval.pack(side="left", padx=10)
+        self.kick_bot_interval.set("7 min")
+        btn_row = ctk.CTkFrame(bot_frame, fg_color="transparent")
+        btn_row.pack(fill="x", padx=15, pady=(0,10))
+        self.kick_bot_start_btn = ctk.CTkButton(btn_row, text="INICIAR BOT", fg_color="#16a34a", hover_color="#15803d", font=("Arial", 13, "bold"), command=self.start_cascade_bot)
+        self.kick_bot_start_btn.pack(side="left", padx=(0,10))
+        self.kick_bot_stop_btn = ctk.CTkButton(btn_row, text="DETENER BOT", fg_color="#dc2626", hover_color="#b91c1c", font=("Arial", 13, "bold"), command=self.stop_cascade_bot)
+        self.kick_bot_stop_btn.pack(side="left")
+        self.kick_auto = ctk.BooleanVar(value=False)  # compat
+        self.kick_interact = ctk.BooleanVar(value=False)  # compat
         
         ctk.CTkLabel(kick_frame, text="🔗 Enlace del Streamer (Ej: https://kick.com/mrpoeta):", font=("Arial", 14, "bold"), text_color="white").pack(anchor="w", padx=30)
         self.kick_textbox = ctk.CTkTextbox(kick_frame, height=50)
@@ -2485,6 +2498,65 @@ class MarketingeoApp(ctk.CTk):
                 safe_char = safe_char.replace("(", "\\(").replace(")", "\\)").replace("|", "\\|")
                 self.adb.run_command(["shell", "input", "text", safe_char], serial)
             time.sleep(0.05)
+
+    def start_cascade_bot(self):
+        """Inicia el bot de comentarios en cascada. Recorre dispositivos uno por uno."""
+        import threading
+        if getattr(self, '_cascade_running', False):
+            self.log_msg(" [Bot] Ya esta corriendo. Usa DETENER BOT primero.", "warn")
+            return
+        if not hasattr(self, 'engine') or not getattr(self.engine, 'active_devices', []):
+            self.log_msg(" [Bot] No hay dispositivos activos. Inicia el tunel primero.", "error")
+            return
+        urls = [u.strip() for u in self.kick_textbox.get("1.0", "end").strip().split('\n') if u.strip()]
+        if not urls:
+            self.log_msg(" [Bot] Pega al menos un link de Kick primero.", "warn")
+            return
+        self._cascade_running = True
+        self.log_msg(" [Bot] Bot en Cascada INICIADO.", "info")
+        threading.Thread(target=self._cascade_loop, daemon=True).start()
+
+    def stop_cascade_bot(self):
+        """Detiene el bot de comentarios en cascada."""
+        self._cascade_running = False
+        self.log_msg(" [Bot] Bot en Cascada DETENIDO.", "warn")
+
+    def _cascade_loop(self):
+        """Loop principal: recorre dispositivos en cascada con intervalo entre cada uno."""
+        import time
+        import random
+        while getattr(self, '_cascade_running', False):
+            devices = getattr(self.engine, 'active_devices', [])
+            if not devices:
+                self.log_msg(" [Bot] Sin dispositivos. Esperando...", "warn")
+                time.sleep(30)
+                continue
+
+            # Obtener intervalo en segundos
+            interval_str = self.kick_bot_interval.get()
+            interval_sec = int(interval_str.replace(" min", "")) * 60
+
+            for dev in devices:
+                if not getattr(self, '_cascade_running', False):
+                    break
+                s = dev['serial']
+                self.log_msg(f" [Bot] Comentando en {s[-4:]}...", "info")
+                try:
+                    self.interact_kick_stream(s)
+                except Exception as e:
+                    self.log_msg(f" [Bot] Error en {s[-4:]}: {e}", "error")
+
+                if not getattr(self, '_cascade_running', False):
+                    break
+
+                # Esperar el intervalo entre dispositivos (con check de stop cada 5s)
+                self.log_msg(f" [Bot] Esperando {interval_str} hasta el proximo comentario...", "info")
+                for _ in range(interval_sec // 5):
+                    if not getattr(self, '_cascade_running', False):
+                        break
+                    time.sleep(5)
+
+        self.log_msg(" [Bot] Loop terminado.", "info")
 
     def interact_kick_stream(self, s):
         import time
