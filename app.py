@@ -2626,27 +2626,11 @@ class MarketingeoApp(ctk.CTk):
         self._type_text_human(s, msg)
         time.sleep(0.5)
         
-        # ENTER
+        # ENTER envia el mensaje (suficiente, no hace falta buscar boton send despues)
         self.adb.run_command(["shell", "input", "keyevent", "66"], s)
-        time.sleep(1.0)
+        time.sleep(0.8)
         
-        # Buscar boton Send fisico
-        root2 = getattr(self, 'pull_and_parse', lambda x: None)(s)
-        if root2 is not None:
-            for n in root2.iter("node"):
-                d2 = n.get("content-desc", "").lower()
-                t2 = n.get("text", "").lower()
-                if d2 == "send" or t2 in ["enviar", "send"]:
-                    bounds = n.get("bounds", "")
-                    if bounds:
-                        coords = [int(c) for c in bounds.replace("][", ",").replace("[", "").replace("]", "").split(",")]
-                        sx = (coords[0] + coords[2]) // 2
-                        sy = (coords[1] + coords[3]) // 2
-                        self.adb.run_command(["shell", "input", "tap", str(sx), str(sy)], s)
-                        self.log_msg(f" [{s[-4:]}] ✅ Send pulsado en {sx},{sy}", "info")
-                        break
-        
-        # ESCAPE para bajar teclado sin minimizar el video
+        # ESCAPE baja el teclado sin minimizar el video ni tocar nada mas
         self.adb.run_command(["shell", "input", "keyevent", "111"], s)
         self.log_msg(f" [{s[-4:]}] ✅ Mensaje enviado.", "info")
 
