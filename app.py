@@ -2106,7 +2106,7 @@ class MarketingeoApp(ctk.CTk):
         batch_frame = ctk.CTkFrame(kick_frame, fg_color="transparent")
         batch_frame.pack(fill="x", padx=30, pady=(0, 10))
         ctk.CTkLabel(batch_frame, text="Procesar de a (Lotes):", font=("Arial", 12, "bold"), text_color="white").pack(side="left")
-        self.batch_size_var = ctk.StringVar(value="Todos")
+        self.batch_size_var = ctk.StringVar(value="5")
         ctk.CTkOptionMenu(batch_frame, values=["1", "2", "4", "5", "10", "20", "30", "40", "Todos"], variable=self.batch_size_var, width=80).pack(side="left", padx=10)
 
         btn_frame = ctk.CTkFrame(kick_frame, fg_color="transparent")
