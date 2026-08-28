@@ -1266,8 +1266,11 @@ class MarketingeoApp(ctk.CTk):
                     self.ig_textbox.insert("1.0", data["ig_playlists"].strip() + "\n")
                     
                 if hasattr(self, 'kick_textbox') and "kick_playlists" in data:
-                    self.kick_textbox.delete("1.0", "end")
-                    self.kick_textbox.insert("1.0", data["kick_playlists"].strip() + "\n")
+                    self.kick_textbox.set("")
+                    self.kick_textbox.set(data["kick_playlists"].strip())
+            if data["kick_playlists"].strip() not in self.kick_saved_urls:
+                self.kick_saved_urls.append(data["kick_playlists"].strip())
+                self.kick_textbox.configure(values=self.kick_saved_urls)
                     
                 if hasattr(self, 'kick_chat_textbox') and "kick_chat" in data:
                     self.kick_chat_textbox.delete("1.0", "end")
@@ -1297,7 +1300,7 @@ class MarketingeoApp(ctk.CTk):
             if hasattr(self, 'ig_textbox'):
                 data["ig_playlists"] = self.ig_textbox.get("1.0", "end").strip()
             if hasattr(self, 'kick_textbox'):
-                data["kick_playlists"] = self.kick_textbox.get("1.0", "end").strip()
+                data["kick_playlists"] = self.kick_textbox.get().strip()
             if hasattr(self, 'kick_chat_textbox'):
                 data["kick_chat"] = self.kick_chat_textbox.get("1.0", "end").strip()
                 
@@ -1933,7 +1936,7 @@ class MarketingeoApp(ctk.CTk):
                                     if needs_rescue:
                                         self.log_msg(f"🚑 Protocolo de Rescate: {serial[-4:]} fuera del Live. Relanzando...", "error")
                                         if hasattr(self, 'kick_textbox'):
-                                            urls = [u.strip() for u in self.kick_textbox.get("1.0", "end").strip().split("\n") if u.strip()]
+                                            urls = [u.strip() for u in self.kick_textbox.get().strip().split("\n") if u.strip()]
                                             if urls:
                                                 import threading
                                                 def _rescue(s):
@@ -2512,7 +2515,7 @@ class MarketingeoApp(ctk.CTk):
                             
                         if needs_rescue:
                             self.log_msg(f"🔍 [{s[-4:]}] Extraviado. Rescatando e inyectando de nuevo...", "warn")
-                            urls = [u.strip() for u in self.kick_textbox.get("1.0", "end").strip().split("\n") if u.strip()]
+                            urls = [u.strip() for u in self.kick_textbox.get().strip().split("\n") if u.strip()]
                             if urls:
                                 import random
                                 streamer = random.choice(urls).rstrip('/').split('/')[-1]
@@ -2594,7 +2597,7 @@ class MarketingeoApp(ctk.CTk):
         if not hasattr(self, 'engine') or not getattr(self.engine, 'active_devices', []):
             self.log_msg(" [Bot] No hay dispositivos activos. Inicia el tunel primero.", "error")
             return
-        urls = [u.strip() for u in self.kick_textbox.get("1.0", "end").strip().split('\n') if u.strip()]
+        urls = [u.strip() for u in self.kick_textbox.get().strip().split('\n') if u.strip()]
         if not urls:
             self.log_msg(" [Bot] Pega al menos un link de Kick primero.", "warn")
             return
@@ -2884,7 +2887,7 @@ class MarketingeoApp(ctk.CTk):
         if not hasattr(self, 'engine') or not getattr(self.engine, 'active_devices', []):
             self.log_msg(" El túnel no está iniciado.", "warn")
             return
-        urls = [u.strip() for u in self.kick_textbox.get("1.0", "end").strip().split('\n') if u.strip()]
+        urls = [u.strip() for u in self.kick_textbox.get().strip().split('\n') if u.strip()]
         if not urls:
             self.log_msg(" La caja de texto de Kick está vacía. Pega un link primero.", "warn")
             return
@@ -3202,7 +3205,9 @@ class MarketingeoApp(ctk.CTk):
                 time.sleep(2)
                 
             if needs_login:
-                self.acc_log(f" [{s[-4:]}] Requiere Login Manual.", "warn")
+                self.acc_log(f" [{s[-4:]}] Kick cerrado. Iniciando Auto-Login de Google...", "warn")
+                self._kick_google_login_thread(s)
+                # Opcional: Marcarlo como X por si acaso fallo el login, y el usuario le da pre-check de nuevo para confirmar
                 if hasattr(self, 'acc_device_checkboxes') and s in self.acc_device_checkboxes:
                     self.after(0, lambda s=s: self.acc_device_checkboxes[s].configure(text=f"{s} ❌", text_color="#EF4444"))
             else:
