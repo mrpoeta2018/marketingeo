@@ -3115,6 +3115,7 @@ class MarketingeoApp(ctk.CTk):
         self.adb.run_command(["shell", "input", "text", pwd], serial)
 
     def find_and_click_by_text(self, serial, target_texts, do_swipe=False):
+        if getattr(self, 'stop_social_threads', False): return False
         import xml.etree.ElementTree as ET
         import re
         import os
@@ -3224,6 +3225,7 @@ class MarketingeoApp(ctk.CTk):
                 except: batch_size = 1
 
         def check_device(dev):
+            if getattr(self, 'stop_social_threads', False): return
             s = dev['serial']
             self.acc_log(f" [{s[-4:]}] Verificando sesion actual de Kick...", "info")
             self.adb.run_command(["shell", "am", "force-stop", "com.kick.mobile"], s)
@@ -3270,6 +3272,7 @@ class MarketingeoApp(ctk.CTk):
             self.after(0, lambda: self.btn_kick_login.configure(text=" 1. Pre-Check (Loguear Cuentas)", fg_color="#2563EB"))
 
     def _kick_google_login_thread(self, serial):
+        if getattr(self, 'stop_social_threads', False): return
         import time
         import json
         import os
