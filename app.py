@@ -2047,9 +2047,27 @@ class MarketingeoApp(ctk.CTk):
         self.kick_auto = ctk.BooleanVar(value=False)  # compat
         self.kick_interact = ctk.BooleanVar(value=False)  # compat
         
-        ctk.CTkLabel(kick_frame, text="🔗 Enlace del Streamer (Ej: https://kick.com/mrpoeta):", font=("Arial", 14, "bold"), text_color="white").pack(anchor="w", padx=30)
-        self.kick_textbox = ctk.CTkTextbox(kick_frame, height=50)
-        self.kick_textbox.pack(padx=30, pady=(0,20), fill="x")
+        # --- Historial de Streamers Inteligente ---
+        url_label_frame = ctk.CTkFrame(kick_frame, fg_color="transparent")
+        url_label_frame.pack(fill="x", padx=30)
+        ctk.CTkLabel(url_label_frame, text=" 🔗 Enlace del Streamer (Selecciona o Escribe):", font=("Arial", 14, "bold"), text_color="white").pack(side="left")
+        
+        url_input_frame = ctk.CTkFrame(kick_frame, fg_color="transparent")
+        url_input_frame.pack(fill="x", padx=30, pady=(0,20))
+        
+        self.kick_saved_urls = ["https://kick.com/mrpoeta"]
+        self.kick_textbox = ctk.CTkComboBox(url_input_frame, values=self.kick_saved_urls, height=40)
+        self.kick_textbox.pack(side="left", fill="x", expand=True, padx=(0,10))
+        
+        def save_url():
+            curr = self.kick_textbox.get().strip()
+            if curr and curr not in self.kick_saved_urls:
+                self.kick_saved_urls.append(curr)
+                self.kick_textbox.configure(values=self.kick_saved_urls)
+                self.log_msg(f"✅ Streamer guardado en el historial: {curr}", "success")
+                
+        ctk.CTkButton(url_input_frame, text="💾 Guardar", width=80, height=40, command=save_url).pack(side="right")
+        # ----------------------------------------
         
         ctk.CTkLabel(kick_frame, text="📝 Tus Comentarios (Escribe uno por renglón):", font=("Arial", 14, "bold"), text_color="#A7F3D0").pack(anchor="w", padx=30)
         self.kick_chat_textbox = ctk.CTkTextbox(kick_frame, height=150)
