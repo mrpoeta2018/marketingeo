@@ -749,8 +749,35 @@ class MarketingeoApp(ctk.CTk):
         self.update_timer()
         self.update_traffic()
         self._check_updates()
-        if True:
-            pass
+        self.after(2000, self._show_whats_new_popup)
+        
+    def _show_whats_new_popup(self):
+        try:
+            from updater import get_local_version
+            import os
+            import tkinter.messagebox as messagebox
+            
+            local_info = get_local_version()
+            curr_v = local_info.get("version", "1.0.0")
+            notes = local_info.get("notes", "Actualización silenciosa.")
+            
+            last_v_file = "last_version.txt"
+            last_v = ""
+            if os.path.exists(last_v_file):
+                with open(last_v_file, "r", encoding="utf-8") as f:
+                    last_v = f.read().strip()
+                    
+            if curr_v != last_v and last_v != "":
+                messagebox.showinfo(
+                    "¡Sistema Actualizado Exitosamente!", 
+                    f"Marketingeo se actualizó automáticamente a la versión {curr_v}.\n\nNovedades:\n{notes}\n\n¡A disfrutar las nuevas funciones!"
+                )
+                
+            if curr_v != last_v:
+                with open(last_v_file, "w", encoding="utf-8") as f:
+                    f.write(curr_v)
+        except Exception as e:
+            print("Error mostrando novedades:", e)
             
             
             
