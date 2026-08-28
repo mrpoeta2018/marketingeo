@@ -2970,7 +2970,9 @@ class MarketingeoApp(ctk.CTk):
                 
                 self.adb.run_command(["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", f"'{url}'", "com.kick.mobile"], s)
                 self.log_msg(f"[{s[-4:]}] Esperando 20s a que cargue el stream...", "info")
-                time.sleep(20)
+                for _ in range(20):
+                    if getattr(self, "stop_social_threads", False): return
+                    time.sleep(1)
                 
                 # Se envia comentario inicial opcionalmente si es necesario, lo quitamos para que sea mas limpio y el cascada haga el trabajo duro.
                 # Pero el viejo si comentaba, llamando self.interact_kick_stream(s). 
