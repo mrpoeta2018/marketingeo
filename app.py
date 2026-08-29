@@ -1405,6 +1405,17 @@ class MarketingeoApp(ctk.CTk):
         # Timer
         timer_lbl = ctk.CTkLabel(mid_fr, text="⏳ Esperando...", font=("Arial", 11), text_color="#94A3B8")
         timer_lbl.pack(anchor="w")
+
+        if dev['serial'] not in self.device_ai_states:
+            import random
+            self.device_ai_states[dev['serial']] = {
+                "personality": random.choice(["🔥 Fanático", "👻 Fantasma", "🤡 Spammer", "🤖 Normal"]),
+                "paused": False
+            }
+        ai_state = self.device_ai_states[dev['serial']]
+        combo_var = ctk.StringVar(value=ai_state["personality"])
+        def update_pers(val, s=dev['serial']): self.device_ai_states[s]["personality"] = val
+        ctk.CTkOptionMenu(mid_fr, values=["🔥 Fanático", "👻 Fantasma", "🤡 Spammer", "🤖 Normal"], variable=combo_var, command=update_pers, width=110, height=20, font=("Arial", 11)).pack(anchor="w", pady=(2,4))
         # IP Display
         ctk.CTkLabel(mid_fr, text="IP EXTERNA:", font=("Arial", 10), text_color="gray").pack(anchor="w")
         ip_val_lbl = ctk.CTkLabel(mid_fr, text="Detectando...", text_color="#FCD34D", font=("Arial", 15, "bold"))
@@ -1423,6 +1434,9 @@ class MarketingeoApp(ctk.CTk):
         actions_fr = ctk.CTkFrame(right_info, fg_color="transparent")
         actions_fr.pack(pady=(5, 0))
         serial = dev['serial']
+
+        ai_btn = ctk.CTkButton(actions_fr, text="▶️" if self.device_ai_states[serial]["paused"] else "⏸️", width=36, height=26, fg_color="#64748B" if self.device_ai_states[serial]["paused"] else "#3B82F6", command=lambda s=serial: self.toggle_ai_pause(s), font=("Arial", 13))
+        ai_btn.pack(side="left", padx=2)
         ctk.CTkButton(actions_fr, text="👁️", width=36, height=26, fg_color="#F59E0B",
                       command=lambda s=serial: self.launch_scrcpy(s),
                       font=("Arial", 13)).pack(side="left", padx=2)
@@ -1440,7 +1454,7 @@ class MarketingeoApp(ctk.CTk):
             "ip": ip_val_lbl,
             "traffic": traffic_lbl,
             "health": health_lbl,
-            "focus_btn": focus_btn,
+            "focus_btn": focus_btn, "ai_btn": ai_btn,
             "ai_btn": ai_btn
         }
         self.device_widgets.append(card)
@@ -2073,6 +2087,8 @@ class MarketingeoApp(ctk.CTk):
         self.kick_bot_type_emojis = ctk.BooleanVar(value=False)
         ctk.CTkCheckBox(type_row, text="Texto", variable=self.kick_bot_type_comments, font=("Arial", 12)).pack(side="left", padx=(0,10))
         ctk.CTkCheckBox(type_row, text="Emojis Verdes", variable=self.kick_bot_type_emojis, font=("Arial", 12)).pack(side="left")
+        self.kick_bot_type_ai = ctk.CTkCheckBox(type_row, text="🤖 Modo IA (Orgánico)", text_color="#FCD34D", font=("Arial", 12, "bold"))
+        self.kick_bot_type_ai.pack(side="left", padx=10)
 
         interval_row = ctk.CTkFrame(bot_frame, fg_color="transparent")
         interval_row.pack(fill="x", padx=15, pady=(0,5))
