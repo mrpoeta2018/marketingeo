@@ -2680,7 +2680,7 @@ class MarketingeoApp(ctk.CTk):
         import time
         import random
         from concurrent.futures import ThreadPoolExecutor
-        
+
         while getattr(self, '_cascade_running', False):
             devices = getattr(self.engine, 'active_devices', [])
             if not devices:
@@ -2704,86 +2704,84 @@ class MarketingeoApp(ctk.CTk):
                 if not getattr(self, '_cascade_running', False): break
                 
                 batch = devices[i:i+batch_size]
-                
-        def process_dev(dev):
-            if not getattr(self, '_cascade_running', False): return
-            s = dev['serial']
-            
-            ai_state = self.device_ai_states.get(s, {"paused": False, "personality": "🤖 Normal"})
-            if ai_state.get("paused", False):
-                self.log_msg(f" [{s[-4:]}] Omitido (En Pausa).", "warn")
-                lbl = self.device_ui_map[s].get("timer")
-                if lbl: self.after(0, lambda lbl=lbl: lbl.configure(text=" PAUSADO", text_color="#EF4444"))
-                return
-                
-            # --- GUARDIAN DE ESTADO ---
-            self.adb.run_command(["shell", "input", "keyevent", "KEYCODE_WAKEUP"], s)
-            out, _, _ = self.adb.run_command(["shell", "dumpsys", "window", "windows"], s)
-            if out and "com.kick.mobile" not in out:
-                self.log_msg(f" [{s[-4:]}] Kick cerrado. Auto-Reparando (Guardián)...", "warn")
-                lbl = self.device_ui_map[s].get("timer")
-                if lbl: self.after(0, lambda lbl=lbl: lbl.configure(text=" Auto-Reparando", text_color="#F59E0B"))
-                urls = [u.strip() for u in getattr(self, 'kick_saved_urls', ["https://kick.com"])]
-                url = urls[0] if urls else "https://kick.com"
-                self.adb.run_command(["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", f"'{url}'", "com.kick.mobile"], s)
-                time.sleep(12)
-            # --------------------------
-            
-            do_ai = getattr(self, 'kick_bot_type_ai', None) and self.kick_bot_type_ai.get()
-            do_comments = getattr(self, 'kick_bot_type_comments', None) and self.kick_bot_type_comments.get()
-            do_emojis = getattr(self, 'kick_bot_type_emojis', None) and self.kick_bot_type_emojis.get()
-            
-            try:
-                if do_ai:
-                    pers = ai_state.get("personality", "🤖 Normal")
-                    import random
-                    roll = random.randint(1, 100)
-                    
-                    if "Fanático" in pers:
-                        if roll <= 60: choice = "text"
-                        elif roll <= 90: choice = "emoji"
-                        else: choice = "watch"
-                    elif "Fantasma" in pers:
-                        if roll <= 10: choice = "text"
-                        elif roll <= 20: choice = "emoji"
-                        else: choice = "watch"
-                    elif "Spammer" in pers:
-                        if roll <= 10: choice = "text"
-                        else: choice = "emoji"
-                    else:
-                        if roll <= 30: choice = "text"
-                        elif roll <= 60: choice = "emoji"
-                        else: choice = "watch"
-                        
-                    lbl = self.device_ui_map[s].get("timer")
-                    if choice == "text":
-                        if lbl: self.after(0, lambda lbl=lbl: lbl.configure(text=" ✍️ Comentando", text_color="#10B981"))
-                        self.log_msg(f" [🤖 {pers}] {s[-4:]} decidió COMENTAR.", "info")
-                        self.interact_kick_stream(s)
-                    elif choice == "emoji":
-                        if lbl: self.after(0, lambda lbl=lbl: lbl.configure(text=" 😊 Emojis", text_color="#10B981"))
-                        self.log_msg(f" [🤖 {pers}] {s[-4:]} decidió enviar EMOJIS.", "info")
-                        self.send_kick_emote(s)
-                    else:
-                        if lbl: self.after(0, lambda lbl=lbl: lbl.configure(text=" 👀 Mirando", text_color="#94A3B8"))
-                        self.log_msg(f" [🤖 {pers}] {s[-4:]} decidió solo MIRAR.", "info")
-                        self.adb.run_command(["shell", "input", "tap", "500", "800"], s)
-                        self.adb.run_command(["shell", "input", "tap", "500", "800"], s)
-                else:
-                    if not do_comments and not do_emojis:
-                        self.log_msg(f" [Bot] Advertencia: Ni texto ni emojis seleccionados.", "warn")
-                        return
-                    if do_comments:
-                        self.log_msg(f" [Bot] Enviando Texto en {s[-4:]}...", "info")
-                        self.interact_kick_stream(s)
-                    if do_emojis:
-                        time.sleep(3)
-                    if do_emojis:
-                        self.log_msg(f" [Bot] Enviando Emoji en {s[-4:]}...", "info")
-                        self.send_kick_emote(s)
-            except Exception as e:
-                self.log_msg(f" [Bot] Error en {s[-4:]}: {e}", "error")
 
+                def process_dev(dev):
+                    if not getattr(self, '_cascade_running', False): return
+                    s = dev['serial']
+                    
+                    ai_state = self.device_ai_states.get(s, {"paused": False, "personality": "🤖 Normal"})
+                    if ai_state.get("paused", False):
+                        self.log_msg(f" [{s[-4:]}] Omitido (En Pausa).", "warn")
+                        lbl = self.device_ui_map[s].get("timer")
+                        if lbl: self.after(0, lambda lbl=lbl: lbl.configure(text=" PAUSADO", text_color="#EF4444"))
+                        return
+                        
+                    # --- GUARDIAN DE ESTADO ---
+                    self.adb.run_command(["shell", "input", "keyevent", "KEYCODE_WAKEUP"], s)
+                    out, _, _ = self.adb.run_command(["shell", "dumpsys", "window", "windows"], s)
+                    if out and "com.kick.mobile" not in out:
+                        self.log_msg(f" [{s[-4:]}] Kick cerrado. Auto-Reparando (Guardián)...", "warn")
+                        lbl = self.device_ui_map[s].get("timer")
+                        if lbl: self.after(0, lambda lbl=lbl: lbl.configure(text=" Auto-Reparando", text_color="#F59E0B"))
+                        urls = [u.strip() for u in getattr(self, 'kick_saved_urls', ["https://kick.com"])]
+                        url = urls[0] if urls else "https://kick.com"
+                        self.adb.run_command(["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", f"'{url}'", "com.kick.mobile"], s)
+                        time.sleep(12)
+                    # --------------------------
+                    
+                    do_ai = getattr(self, 'kick_bot_type_ai', None) and self.kick_bot_type_ai.get()
+                    do_comments = getattr(self, 'kick_bot_type_comments', None) and self.kick_bot_type_comments.get()
+                    do_emojis = getattr(self, 'kick_bot_type_emojis', None) and self.kick_bot_type_emojis.get()
+                    
+                    try:
+                        if do_ai:
+                            pers = ai_state.get("personality", "🤖 Normal")
+                            roll = random.randint(1, 100)
+                            
+                            if "Fanático" in pers:
+                                if roll <= 60: choice = "text"
+                                elif roll <= 90: choice = "emoji"
+                                else: choice = "watch"
+                            elif "Fantasma" in pers:
+                                if roll <= 10: choice = "text"
+                                elif roll <= 20: choice = "emoji"
+                                else: choice = "watch"
+                            elif "Spammer" in pers:
+                                if roll <= 10: choice = "text"
+                                else: choice = "emoji"
+                            else:
+                                if roll <= 30: choice = "text"
+                                elif roll <= 60: choice = "emoji"
+                                else: choice = "watch"
+                                
+                            lbl = self.device_ui_map[s].get("timer")
+                            if choice == "text":
+                                if lbl: self.after(0, lambda lbl=lbl: lbl.configure(text=" ✍️ Comentando", text_color="#10B981"))
+                                self.log_msg(f" [🤖 {pers}] {s[-4:]} decidió COMENTAR.", "info")
+                                self.interact_kick_stream(s)
+                            elif choice == "emoji":
+                                if lbl: self.after(0, lambda lbl=lbl: lbl.configure(text=" 😊 Emojis", text_color="#10B981"))
+                                self.log_msg(f" [🤖 {pers}] {s[-4:]} decidió enviar EMOJIS.", "info")
+                                self.send_kick_emote(s)
+                            else:
+                                if lbl: self.after(0, lambda lbl=lbl: lbl.configure(text=" 👀 Mirando", text_color="#94A3B8"))
+                                self.log_msg(f" [🤖 {pers}] {s[-4:]} decidió solo MIRAR.", "info")
+                                self.adb.run_command(["shell", "input", "tap", "500", "800"], s)
+                                self.adb.run_command(["shell", "input", "tap", "500", "800"], s)
+                        else:
+                            if not do_comments and not do_emojis:
+                                self.log_msg(f" [Bot] Advertencia: Ni texto ni emojis seleccionados.", "warn")
+                                return
+                            if do_comments:
+                                self.log_msg(f" [Bot] Enviando Texto en {s[-4:]}...", "info")
+                                self.interact_kick_stream(s)
+                            if do_emojis:
+                                time.sleep(3)
+                            if do_emojis:
+                                self.log_msg(f" [Bot] Enviando Emoji en {s[-4:]}...", "info")
+                                self.send_kick_emote(s)
+                    except Exception as e:
+                        self.log_msg(f" [Bot] Error en {s[-4:]}: {e}", "error")
                 
                 with ThreadPoolExecutor(max_workers=batch_size) as executor:
                     executor.map(process_dev, batch)
@@ -2797,6 +2795,7 @@ class MarketingeoApp(ctk.CTk):
                     time.sleep(5)
 
         self.log_msg(" [Bot] Loop terminado.", "info")
+
 
     def interact_kick_stream(self, s):
         import time
