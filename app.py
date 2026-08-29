@@ -2192,27 +2192,73 @@ class MarketingeoApp(ctk.CTk):
         ig_frame = ctk.CTkFrame(main_frame, fg_color="#831843", corner_radius=12)
         ig_frame.pack(fill="both", expand=True, pady=10)
         
-        ctk.CTkLabel(ig_frame, text="📸 Instagram Automator", font=("Arial", 24, "bold"), text_color="#F472B6").pack(pady=20)
+        ctk.CTkLabel(ig_frame, text=" Instagram Automator", font=("Arial", 24, "bold"), text_color="#F472B6").pack(pady=20)
         
-        self.ig_auto = ctk.BooleanVar(value=True)
-        ctk.CTkCheckBox(ig_frame, text=" ❤️ Auto-Like y Swipe de Reels", font=("Arial", 14, "bold"), text_color="white", variable=self.ig_auto).pack(anchor="w", padx=30, pady=5)
+        # --- Bot de Instagram en Cascada ---
+        bot_frame = ctk.CTkFrame(ig_frame, fg_color="#1a1a2e", corner_radius=10)
+        bot_frame.pack(fill="x", padx=20, pady=(0, 10))
         
-        self.ig_interact = ctk.BooleanVar(value=False)
-        ctk.CTkCheckBox(ig_frame, text=" 💬 Interacción Avanzada (Comentar/Guardar)", font=("Arial", 13), text_color="white", variable=self.ig_interact).pack(anchor="w", padx=30, pady=(0,20))
+        title_fr = ctk.CTkFrame(bot_frame, fg_color="transparent")
+        title_fr.pack(fill="x", padx=15, pady=(10,5))
+        ctk.CTkLabel(title_fr, text="Bot de Instagram en Cascada", font=("Arial", 14, "bold"), text_color="#E879F9").pack(side="left")
+        msg_ig_cascada = "Este bot da likes, comenta y hace swipe (scroll) orgánico en Instagram.\n\n⚠️ IMPORTANTE: No lo uses al mismo tiempo que los bots de Kick para evitar que la pantalla se vuelva loca."
+        ctk.CTkButton(title_fr, text="ℹ️ Ayuda", width=50, height=20, fg_color="#475569", hover_color="#334155", font=("Arial", 11), command=lambda: self.show_info_modal("Bot de Instagram", msg_ig_cascada)).pack(side="left", padx=10)
         
-        ctk.CTkLabel(ig_frame, text="🔗 Enlace del Perfil o Reel:", font=("Arial", 14, "bold"), text_color="white").pack(anchor="w", padx=30)
-        self.ig_textbox = ctk.CTkTextbox(ig_frame, height=50)
-        self.ig_textbox.pack(padx=30, pady=(0,20), fill="x")
+        # Checkboxes for type of interaction
+        type_row = ctk.CTkFrame(bot_frame, fg_color="transparent")
+        type_row.pack(fill="x", padx=15, pady=(0, 5))
+        self.ig_bot_type_comments = ctk.BooleanVar(value=True)
+        self.ig_bot_type_likes = ctk.BooleanVar(value=True)
+        ctk.CTkCheckBox(type_row, text="Comentar", variable=self.ig_bot_type_comments, font=("Arial", 12)).pack(side="left", padx=(0,10))
+        ctk.CTkCheckBox(type_row, text="Likes (Doble Tap)", variable=self.ig_bot_type_likes, font=("Arial", 12)).pack(side="left", padx=(0,10))
+        
+        self.ig_bot_type_ai = ctk.CTkCheckBox(type_row, text="🤖 Modo IA (Orgánico)", text_color="#FCD34D", font=("Arial", 12, "bold"))
+        self.ig_bot_type_ai.pack(side="left", padx=10)
+        msg_ig_ia = "El Modo Inteligencia Artificial (Orgánico) ignora las casillas de Texto y Likes.\n\nCada celular decidirá basado en su Personalidad oculta (Fanático, Fantasma) si solo mira el reel y hace swipe, si da like, o si además comenta."
+        ctk.CTkButton(type_row, text="ℹ️ Info", width=40, height=20, fg_color="#475569", hover_color="#334155", font=("Arial", 10), command=lambda: self.show_info_modal("Modo IA Instagram", msg_ig_ia)).pack(side="left", padx=5)
+        
+        interval_row = ctk.CTkFrame(bot_frame, fg_color="transparent")
+        interval_row.pack(fill="x", padx=15, pady=(0,5))
+        ctk.CTkLabel(interval_row, text="Intervalo entre Swipes (Mirar Reels):", font=("Arial", 12), text_color="white").pack(side="left")
+        self.ig_bot_interval = ctk.CTkOptionMenu(interval_row, values=["15 seg", "30 seg", "60 seg", "90 seg", "2 min", "3 min"], width=100)
+        self.ig_bot_interval.set("30 seg")
+        self.ig_bot_interval.pack(side="left", padx=10)
+        
+        btn_row = ctk.CTkFrame(bot_frame, fg_color="transparent")
+        btn_row.pack(fill="x", padx=15, pady=(15,15))
+        self.ig_bot_start_btn = ctk.CTkButton(btn_row, text="INICIAR BOT IG", fg_color="#16a34a", hover_color="#15803d", font=("Arial", 13, "bold"), command=self.start_ig_cascade_bot)
+        self.ig_bot_start_btn.pack(side="left", padx=(0,10))
+        ctk.CTkButton(btn_row, text="DETENER BOT", fg_color="#DC2626", hover_color="#991B1B", font=("Arial", 13, "bold"), command=self.stop_ig_cascade_bot).pack(side="left")
+        
+        # --- Enlace del Streamer / Reel ---
+        url_frame = ctk.CTkFrame(ig_frame, fg_color="transparent")
+        url_frame.pack(fill="x", padx=30, pady=(10, 5))
+        ctk.CTkLabel(url_frame, text=" Enlace de Cuenta o Reel:", font=("Arial", 14, "bold"), text_color="white").pack(anchor="w")
+        
+        self.ig_url_var = ctk.StringVar(value="https://instagram.com/mrpoeta_oficial")
+        self.ig_url_combo = ctk.CTkComboBox(url_frame, variable=self.ig_url_var, values=["https://instagram.com/mrpoeta_oficial"], width=500, height=35)
+        self.ig_url_combo.pack(side="left", pady=5)
+        
+        # Comentarios IG
+        com_frame = ctk.CTkFrame(ig_frame, fg_color="transparent")
+        com_frame.pack(fill="x", padx=30, pady=(10, 5))
+        ctk.CTkLabel(com_frame, text=" Tus Comentarios (Escribe uno por renglón):", font=("Arial", 14, "bold"), text_color="white").pack(anchor="w")
+        self.ig_chat_textbox = ctk.CTkTextbox(com_frame, height=100)
+        self.ig_chat_textbox.pack(fill="x", pady=5)
+        self.ig_chat_textbox.insert("1.0", "¡Qué buen video!\nJajaja total\n🔥\nMe encantó\nSaludos")
+        
+        # Batch selector IG
+        batch_frame = ctk.CTkFrame(ig_frame, fg_color="transparent")
+        batch_frame.pack(fill="x", padx=30, pady=(0, 10))
+        ctk.CTkLabel(batch_frame, text="Procesar de a (Lotes):", font=("Arial", 12, "bold"), text_color="white").pack(side="left")
+        self.ig_batch_size_var = ctk.StringVar(value="5")
+        ctk.CTkOptionMenu(batch_frame, values=["1", "2", "4", "5", "10", "20", "30", "40", "Todos"], variable=self.ig_batch_size_var, width=80).pack(side="left", padx=10)
         
         btn_frame = ctk.CTkFrame(ig_frame, fg_color="transparent")
         btn_frame.pack(fill="x", pady=20, padx=30)
         
-        btn_ig = ctk.CTkButton(btn_frame, text="▶ Iniciar Instagram", fg_color="#BE185D", height=40, font=("Arial", 14, "bold"), command=self.inject_ig)
-        btn_ig.pack(side="right")
-        
-        bottom_frame = ctk.CTkFrame(self.tab_ig, fg_color="transparent")
-        bottom_frame.pack(fill="x", pady=10)
-        ctk.CTkButton(bottom_frame, text="🛑 Detener Bots IG", fg_color="#DC2626", hover_color="#991B1B", command=self.stop_social_bots).pack(side="right", padx=20)
+        self.btn_ig_inject = ctk.CTkButton(btn_frame, text=" 1. Inyectar IG URL", fg_color="#DB2777", hover_color="#BE185D", height=40, font=("Arial", 14, "bold"), command=self.inject_ig)
+        self.btn_ig_inject.pack(side="right", padx=(10, 0))
 
     def build_labs_tab(self):
         self.tab_labs.grid_columnconfigure(0, weight=1)
@@ -2274,182 +2320,284 @@ class MarketingeoApp(ctk.CTk):
             
         threading.Thread(target=_stop_process, daemon=True).start()
 
-    def interact_ig_post(self, s):
-        self.log_msg(f"Iniciando interacción avanzada en {s}...", "info")
-        import random
-        # 1. Intentar ver si ya tiene like mediante XML
-        self.adb.run_command(["shell", "uiautomator", "dump", "/sdcard/window_dump.xml"], s)
-        import os
-        local_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), f"dump_{s}.xml")
-        self.adb.run_command(["pull", "/sdcard/window_dump.xml", local_path], s)
-        
-        has_like = False
-        import xml.etree.ElementTree as ET
-        try:
-            tree = ET.parse(local_path)
-            root = tree.getroot()
-            os.remove(local_path)
-            for node in root.iter():
-                desc = node.get("content-desc", "").lower()
-                text = node.get("text", "").lower()
-                if "ya no me gusta" in desc or "ya no me gusta" in text or "unlike" in desc:
-                    has_like = True
-                    break
-        except Exception:
-            pass
-
-        # 2. Dar Like si no tiene
-        if has_like:
-            self.log_msg(f"✅ El post en {s} ya tiene Like. Omitiendo...", "info")
-        else:
-            self.log_msg(f"Dando Like inteligente en {s}...", "info")
-            click_like = self.find_and_click_by_text(s, ["me gusta", "like"])
-            if not click_like:
-                self.adb.run_command(["shell", "input", "tap", "50", "1050"], s)
-            time.sleep(1)
-
-        # 3. Comentar (Ocasional)
-        if random.random() < 0.3: # 30% de probabilidad
-            self.log_msg("Escribiendo comentario...", "info")
-            click_comment = self.find_and_click_by_text(s, ["comentar", "comment"])
-            if not click_comment:
-                self.adb.run_command(["shell", "input", "tap", "350", "1050"], s)
-            time.sleep(2)
-            
-            # Escribir comentario
-            comments = ["Fuegooo 🔥", "Genial!", "👏👏👏", "Wow", "Excelente"]
-            comment = random.choice(comments)
-            # Presionar teclado virtual
-            for char in comment:
-                self.adb.run_command(["shell", "input", "text", char], s)
-                time.sleep(0.1)
-            time.sleep(1)
-            # Enviar (enter o boton)
-            self.adb.run_command(["shell", "input", "keyevent", "66"], s)
-            time.sleep(2)
-            # Back para cerrar panel de comentarios
-            self.adb.run_command(["shell", "input", "keyevent", "4"], s)
-            time.sleep(1)
-
-        # 4. Guardar (Ocasional)
-        if random.random() < 0.5:
-            self.log_msg("Guardando post...", "info")
-            click_save = self.find_and_click_by_text(s, ["guardar", "save"])
-            if not click_save:
-                self.adb.run_command(["shell", "input", "tap", "650", "1050"], s)
-            time.sleep(1)
-
-        # 5. Compartir en Historia (Ocasional)
-        if random.random() < 0.2: # 20% de probabilidad
-            self.log_msg("Compartiendo en Historia...", "info")
-            click_share = self.find_and_click_by_text(s, ["enviar", "compartir", "share", "send"])
-            if not click_share:
-                # Botón de enviar típico (Avioncito)
-                self.adb.run_command(["shell", "input", "tap", "650", "950"], s)
-            time.sleep(3)
-            
-            # Tocar 'Agregar a historia' (suele estar abajo a la izquierda en el popup)
-            click_add = self.find_and_click_by_text(s, ["agregar a historia", "add to story"])
-            if not click_add:
-                self.adb.run_command(["shell", "input", "tap", "150", "1100"], s)
-            time.sleep(6) # Esperar que cargue el editor de historias
-            
-            # Tocar 'Tu historia' para publicar
-            click_tu_historia = self.find_and_click_by_text(s, ["tu historia", "your story"])
-            if not click_tu_historia:
-                # Coordenada típica del botón 'Tu historia'
-                self.adb.run_command(["shell", "input", "tap", "160", "1260"], s)
-            time.sleep(4)
-            self.log_msg("✅ Compartido en historia exitosamente.", "success")
-
 
     def inject_ig(self):
+        """Inyecta la URL de Instagram (Deep Link) en los dispositivos seleccionados."""
         self.stop_social_threads = False
         if not hasattr(self, 'engine') or not getattr(self.engine, 'active_devices', []):
-            self.log_msg("⚠️ El túnel no está iniciado.", "warn")
+            self.log_msg(" [Bot] No hay dispositivos activos.", "warn")
             return
-        urls = [u.strip() for u in self.ig_textbox.get("1.0", "end").strip().split('\n') if u.strip()]
+            
+        urls = [u.strip() for u in getattr(self, 'ig_url_var').get().strip().split('\n') if u.strip()]
         if not urls:
-            self.log_msg("⚠️ La caja de texto de Kick está vacía. Pega un link primero.", "warn")
+            self.log_msg(" [Bot] La URL de IG está vacía.", "warn")
             return
-        import random
+            
+        url = urls[0]
+        # Si es un perfil, intentar armar intent nativo
         import re
+        deep_link = url
+        m = re.search(r"instagram\.com/([^/?]+)", url)
+        if m and "reel" not in url and "p" not in url:
+            deep_link = f"instagram://user?username={m.group(1)}"
+            
+        self.ig_saved_urls = urls
         
-        def _bot():
-            for dev in self.engine.active_devices:
-                if getattr(self, "stop_social_threads", False): break
-                url = random.choice(urls)
-                s = dev['serial']
+        batch_size = 1
+        if hasattr(self, 'ig_batch_size_var'):
+            val = self.ig_batch_size_var.get()
+            if val == "Todos": batch_size = len(self.engine.active_devices)
+            else:
+                try: batch_size = int(val)
+                except: batch_size = 1
                 
-                # Extraer username y construir deep link
-                username = ""
-                m = re.search(r"instagram\.com/([^/?]+)", url)
-                if m:
-                    username = m.group(1)
-                    deep_link = f"instagram://user?username={username}"
-                else:
-                    deep_link = url # Fallback
-                
-                self.log_msg(f"Abriendo IG: {username} en {s}...")
-                
-                # Cierra otras apps y refresca IG
-                self._force_portrait(s)
-                self._cleanup_background_apps(s, exclude_pkg="com.instagram.android")
-                self.adb.run_command(["shell", "am", "force-stop", "com.instagram.android"], s)
+        # UI Feedback
+        if hasattr(self, 'btn_ig_inject'):
+            self.btn_ig_inject.configure(text=" ⏳ Inyectando IG...", fg_color="#F59E0B")
+            self.ig_bot_start_btn.configure(state="disabled")
+            
+        def inject_dev(dev):
+            if getattr(self, "stop_social_threads", False): return
+            s = dev['serial']
+            self.log_msg(f" [IG] Abriendo enlace en {s[-4:]}...", "info")
+            
+            # Limpiar e inyectar
+            self.adb.run_command(["shell", "am", "force-stop", "com.instagram.android"], s)
+            import time
+            time.sleep(1)
+            self.adb.run_command(["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", f"'{deep_link}'", "com.instagram.android"], s)
+            
+            # Esperar a que cargue
+            for _ in range(8):
+                if getattr(self, "stop_social_threads", False): return
                 time.sleep(1)
                 
-                # Inicia el Deep Link nativo
-                self.adb.run_command(["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", f"'{deep_link}'", "com.instagram.android"], s)
+        def _do_inject():
+            from concurrent.futures import ThreadPoolExecutor
+            # Para IG inyectamos todos al mismo tiempo o en lotes secuenciales
+            devices = self.engine.active_devices
+            for i in range(0, len(devices), batch_size):
+                if getattr(self, "stop_social_threads", False): break
+                batch = devices[i:i+batch_size]
+                with ThreadPoolExecutor(max_workers=batch_size) as executor:
+                    executor.map(inject_dev, batch)
+                    
+            self.log_msg(" [IG] Inyección de URL completada.", "success")
+            if hasattr(self, 'btn_ig_inject'):
+                self.after(0, lambda: self.btn_ig_inject.configure(text=" 1. Inyectar IG URL", fg_color="#DB2777"))
+                self.after(0, lambda: self.ig_bot_start_btn.configure(state="normal"))
                 
-                if self.ig_auto.get():
-                    self.log_msg(f"Esperando carga del perfil en {s}...", "info")
-                    time.sleep(15) # Espera buena carga
+        import threading
+        threading.Thread(target=_do_inject, daemon=True).start()
+
+    def start_ig_cascade_bot(self):
+        """Inicia el bot principal de Instagram (Modo IA y Normal)."""
+        if not hasattr(self, 'engine') or not getattr(self.engine, 'active_devices', []):
+            self.log_msg(" [IG Bot] No hay dispositivos activos.", "error")
+            return
+            
+        self._ig_cascade_running = True
+        self.log_msg(" [IG Bot] Iniciando Bot en Cascada de Instagram...", "info")
+        if hasattr(self, 'ig_bot_start_btn'):
+            self.ig_bot_start_btn.configure(text=" ⏳ CASCADA ACTIVA (IG)", fg_color="#F59E0B")
+            
+        # UI Safety Locks
+        if hasattr(self, 'btn_ig_inject'): self.btn_ig_inject.configure(state="disabled")
+        
+        import threading
+        threading.Thread(target=self._ig_cascade_loop, daemon=True).start()
+
+    def stop_ig_cascade_bot(self):
+        """Detiene el bot en cascada de IG."""
+        self._ig_cascade_running = False
+        self.log_msg(" [IG Bot] Bot en Cascada DETENIDO.", "warn")
+        if hasattr(self, 'ig_bot_start_btn'):
+            self.ig_bot_start_btn.configure(text=" INICIAR BOT IG", fg_color="#16A34A")
+            
+        # Remove UI Safety Locks
+        if hasattr(self, 'btn_ig_inject'): self.btn_ig_inject.configure(state="normal")
+
+    def interact_ig_comment(self, s):
+        import time
+        import random
+        
+        stdout, _, _ = self.adb.run_command(["shell", "wm", "size"], s)
+        width, height = 480, 960
+        import re
+        match = re.search(r"(\d+)x(\d+)", stdout or "")
+        if match:
+            width, height = int(match.group(1)), int(match.group(2))
+            
+        # Comentarios IG Reels (aprox 90% ancho, 65% alto)
+        cx, cy = int(width * 0.9), int(height * 0.65)
+        self.adb.run_command(["shell", "input", "tap", str(cx), str(cy)], s)
+        time.sleep(2) # Esperar que abra el drawer de comentarios
+        
+        # Tap en caja de texto (aprox centro, abajo)
+        bx, by = int(width * 0.4), int(height * 0.85)
+        self.adb.run_command(["shell", "input", "tap", str(bx), str(by)], s)
+        time.sleep(1)
+        
+        # Escribir comentario
+        raw_text = self.ig_chat_textbox.get("1.0", "end").strip()
+        comments = [c.strip() for c in raw_text.split('\n') if c.strip()]
+        if not comments:
+            comments = ["🔥", "Muy bueno!", "Excelente"]
+            
+        msg = random.choice(comments)
+        safe_msg = msg.replace(" ", "%s").replace("&", "\&").replace(";", "\;").replace("(", "\(").replace(")", "\)").replace("'", "\'").replace('"', '\"')
+        self.adb.run_command(["shell", "input", "text", safe_msg], s)
+        time.sleep(1)
+        
+        # Click en boton enviar (aprox 90% ancho justo arriba del teclado, o usamos Enter)
+        self.adb.run_command(["shell", "input", "keyevent", "66"], s) # Enter
+        time.sleep(1)
+        
+        # Volver al reel / Cerrar drawer (back)
+        self.adb.run_command(["shell", "input", "keyevent", "4"], s)
+        time.sleep(0.5)
+        self.adb.run_command(["shell", "input", "keyevent", "4"], s)
+        
+    def _ig_cascade_loop(self):
+        import time
+        import random
+        from concurrent.futures import ThreadPoolExecutor
+
+        while getattr(self, '_ig_cascade_running', False):
+            devices = getattr(self.engine, 'active_devices', [])
+            if not devices:
+                self.log_msg(" [IG Bot] Sin dispositivos. Esperando...", "warn")
+                time.sleep(30)
+                continue
+
+            interval_str = self.ig_bot_interval.get()
+            interval_sec = int(interval_str.replace(" seg", "").replace(" min", "00"))
+            if "min" in interval_str:
+                interval_sec = int(interval_str.replace(" min", "")) * 60
+
+            batch_size = 1
+            if hasattr(self, 'ig_batch_size_var'):
+                val = self.ig_batch_size_var.get()
+                if val == "Todos": batch_size = len(devices)
+                else:
+                    try: batch_size = int(val)
+                    except: batch_size = 1
+
+            for i in range(0, len(devices), batch_size):
+                if not getattr(self, '_ig_cascade_running', False): break
+                
+                batch = devices[i:i+batch_size]
+
+                def process_ig_dev(dev):
+                    if not getattr(self, '_ig_cascade_running', False): return
+                    s = dev['serial']
                     
-                    self.log_msg(f"Buscando botón 'Seguir' en {s}...", "info")
-                    click_seguir = self.find_and_click_by_text(s, [f"Seguir a {username}", "Seguir", "Follow"])
-                    if click_seguir:
-                        self.log_msg(f"✅ ¡Follow enviado a {username}!", "success")
-                        time.sleep(2)
+                    ai_state = self.device_ai_states.get(s, {"paused": False, "personality": "🤖 Normal"})
+                    if ai_state.get("paused", False):
+                        self.log_msg(f" [{s[-4:]}] Omitido (En Pausa).", "warn")
+                        lbl = self.device_ui_map[s].get("timer")
+                        if lbl: self.after(0, lambda lbl=lbl: lbl.configure(text=" PAUSADO", text_color="#EF4444"))
+                        return
+                        
+                    # --- GUARDIAN IG ---
+                    self.adb.run_command(["shell", "input", "keyevent", "KEYCODE_WAKEUP"], s)
+                    out, _, _ = self.adb.run_command(["shell", "dumpsys", "window", "windows"], s)
+                    if out and "com.instagram.android" not in out:
+                        self.log_msg(f" [{s[-4:]}] IG cerrado. Auto-Reparando (Guardián)...", "warn")
+                        lbl = self.device_ui_map[s].get("timer")
+                        if lbl: self.after(0, lambda lbl=lbl: lbl.configure(text=" Auto-Reparando", text_color="#F59E0B"))
+                        urls = [u.strip() for u in getattr(self, 'ig_saved_urls', ["instagram://user?username=mrpoeta_oficial"])]
+                        url = urls[0] if urls else "instagram://user?username=mrpoeta_oficial"
+                        self.adb.run_command(["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", f"'{url}'", "com.instagram.android"], s)
+                        time.sleep(10)
+                    # --------------------------
                     
-                    # Decidir aleatoriamente entre Historias o Publicaciones para no chocar
-                    modo = random.choice(["historias", "publicaciones"])
-                    self.log_msg(f"Decidió interactuar con: {modo}", "info")
+                    do_ai = getattr(self, 'ig_bot_type_ai', None) and self.ig_bot_type_ai.get()
+                    do_comments = getattr(self, 'ig_bot_type_comments', None) and self.ig_bot_type_comments.get()
+                    do_likes = getattr(self, 'ig_bot_type_likes', None) and self.ig_bot_type_likes.get()
                     
-                    if modo == "historias":
-                        click_foto = self.find_and_click_by_text(s, ["Foto del perfil", "Profile photo", "Historia vista", "Historia no vista", "Historia de"])
-                        if click_foto:
-                            self.log_msg(f"✅ Viendo historias de {username}", "success")
-                            time.sleep(30)
+                    try:
+                        stdout, _, _ = self.adb.run_command(["shell", "wm", "size"], s)
+                        width, height = 480, 960
+                        import re
+                        match = re.search(r"(\d+)x(\d+)", stdout or "")
+                        if match:
+                            width, height = int(match.group(1)), int(match.group(2))
+                        
+                        if do_ai:
+                            pers = ai_state.get("personality", "🤖 Normal")
+                            roll = random.randint(1, 100)
+                            
+                            # Decision
+                            if "Fanático" in pers:
+                                if roll <= 50: choice = "comment"
+                                elif roll <= 80: choice = "like"
+                                else: choice = "swipe"
+                            elif "Fantasma" in pers:
+                                if roll <= 10: choice = "comment"
+                                elif roll <= 20: choice = "like"
+                                else: choice = "swipe"
+                            elif "Spammer" in pers:
+                                if roll <= 10: choice = "comment"
+                                else: choice = "like"
+                            else:
+                                if roll <= 20: choice = "comment"
+                                elif roll <= 50: choice = "like"
+                                else: choice = "swipe"
+                                
+                            lbl = self.device_ui_map[s].get("timer")
+                            
+                            if choice == "comment":
+                                if lbl: self.after(0, lambda lbl=lbl: lbl.configure(text=" ✍️ Comentando", text_color="#10B981"))
+                                self.log_msg(f" [🤖 {pers}] {s[-4:]} decidió COMENTAR.", "info")
+                                self.adb.run_command(["shell", "input", "tap", str(width//2), str(height//2)], s) # Doble tap para like igual
+                                self.adb.run_command(["shell", "input", "tap", str(width//2), str(height//2)], s)
+                                time.sleep(1)
+                                self.interact_ig_comment(s)
+                            elif choice == "like":
+                                if lbl: self.after(0, lambda lbl=lbl: lbl.configure(text=" ❤️ Dando Like", text_color="#F43F5E"))
+                                self.log_msg(f" [🤖 {pers}] {s[-4:]} decidió dar LIKE.", "info")
+                                self.adb.run_command(["shell", "input", "tap", str(width//2), str(height//2)], s)
+                                self.adb.run_command(["shell", "input", "tap", str(width//2), str(height//2)], s)
+                            else:
+                                if lbl: self.after(0, lambda lbl=lbl: lbl.configure(text=" 👆 Mirando/Swipe", text_color="#94A3B8"))
+                                self.log_msg(f" [🤖 {pers}] {s[-4:]} decidió solo hacer SWIPE.", "info")
+                                
+                            # Swipe Up en IG después de la acción para seguir al siguiente Reel
+                            time.sleep(2)
+                            self.adb.run_command(["shell", "input", "swipe", str(width//2), str(height-200), str(width//2), "200"], s)
+                                
                         else:
-                            self.log_msg("No hay historias disponibles. Cancelando.", "warn")
-                    else:
-                        # Modo publicaciones / Reels
-                        self.log_msg(f"Deslizando para buscar publicaciones de {username}", "info")
-                        # Hacemos 2 swipes largos para asegurar pasar las Historias Destacadas (Highlights)
-                        self.adb.run_command(["shell", "input", "swipe", "360", "1200", "360", "200"], s)
-                        time.sleep(1)
-                        self.adb.run_command(["shell", "input", "swipe", "360", "1200", "360", "200"], s)
-                        time.sleep(2)
-                        
-                        # Buscamos específicamente un cuadro de la cuadrícula de publicaciones o reels
-                        click_post = self.find_and_click_by_text(s, ["columna 1", "columna 2", "column 1"])
-                        if not click_post:
-                            self.log_msg(f"Usando toque de respaldo para abrir reel...", "warn")
-                            # Toque de respaldo más abajo para asegurar tocar la cuadrícula y no las historias destacadas
-                            self.adb.run_command(["shell", "input", "tap", "200", "850"], s)
-                        
-                        self.log_msg(f"✅ Viendo publicaciones de {username}", "success")
-                        time.sleep(4)
-                        
-                        if getattr(self, 'ig_interact', None) and self.ig_interact.get():
-                            self.interact_ig_post(s)
-                        
-                        # Swipe Up suave y largo (de abajo hacia arriba)
-                        self.adb.run_command(["shell", "input", "swipe", "360", "1100", "360", "150"], s)
-                        
-                time.sleep(2)
-        threading.Thread(target=_bot, daemon=True).start()
-        self.log_msg("✨ Inyectando Instagram con automatización Inteligente...", "info")
+                            # Modo Normal
+                            if do_likes:
+                                self.log_msg(f" [IG Bot] Dando Like en {s[-4:]}...", "info")
+                                self.adb.run_command(["shell", "input", "tap", str(width//2), str(height//2)], s)
+                                self.adb.run_command(["shell", "input", "tap", str(width//2), str(height//2)], s)
+                                time.sleep(1)
+                                
+                            if do_comments:
+                                self.log_msg(f" [IG Bot] Comentando en {s[-4:]}...", "info")
+                                self.interact_ig_comment(s)
+                                
+                            time.sleep(2)
+                            self.adb.run_command(["shell", "input", "swipe", str(width//2), str(height-200), str(width//2), "200"], s)
+                            
+                    except Exception as e:
+                        self.log_msg(f" [IG Bot] Error en {s[-4:]}: {e}", "error")
+                
+                with ThreadPoolExecutor(max_workers=batch_size) as executor:
+                    executor.map(process_ig_dev, batch)
+
+                if not getattr(self, '_ig_cascade_running', False): break
+
+                # Esperar intervalo antes del proximo lote
+                self.log_msg(f" [IG Bot] Lote terminado. Esperando {interval_str}...", "info")
+                for _ in range(interval_sec):
+                    if not getattr(self, '_ig_cascade_running', False): break
+                    time.sleep(1)
+
+        self.log_msg(" [IG Bot] Loop terminado.", "info")
+
 
     def _kick_search_and_enter(self, serial, streamer_name, is_slow=False):
         import time
