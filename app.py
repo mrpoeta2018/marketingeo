@@ -703,6 +703,24 @@ class MarketingeoApp(ctk.CTk):
         widget.bind("<Enter>", on_enter)
         widget.bind("<Leave>", on_leave)
 
+    def show_info_modal(self, title, message):
+        modal = ctk.CTkToplevel(self)
+        modal.title(title)
+        modal.geometry("500x350")
+        modal.attributes('-topmost', True)
+        modal.grab_set()
+        
+        lbl_title = ctk.CTkLabel(modal, text=title, font=("Arial", 18, "bold"), text_color="#FCD34D")
+        lbl_title.pack(pady=(20, 10))
+        
+        txt = ctk.CTkTextbox(modal, wrap="word", font=("Arial", 13))
+        txt.pack(fill="both", expand=True, padx=20, pady=10)
+        txt.insert("1.0", message)
+        txt.configure(state="disabled")
+        
+        btn = ctk.CTkButton(modal, text="Entendido", command=modal.destroy, fg_color="#3B82F6")
+        btn.pack(pady=15)
+        
     def lock_device(self, serial, duration_seconds=40):
         self.device_locks[serial] = time.time() + duration_seconds
 
@@ -2078,7 +2096,13 @@ class MarketingeoApp(ctk.CTk):
         # --- Bot en Cascada ---
         bot_frame = ctk.CTkFrame(kick_frame, fg_color="#1a1a2e", corner_radius=10)
         bot_frame.pack(fill="x", padx=20, pady=(0, 10))
-        ctk.CTkLabel(bot_frame, text="Bot de Comentarios en Cascada", font=("Arial", 14, "bold"), text_color="#9333EA").pack(anchor="w", padx=15, pady=(10,5))
+        
+        title_fr = ctk.CTkFrame(bot_frame, fg_color="transparent")
+        title_fr.pack(fill="x", padx=15, pady=(10,5))
+        ctk.CTkLabel(title_fr, text="Bot de Comentarios en Cascada", font=("Arial", 14, "bold"), text_color="#9333EA").pack(side="left")
+        
+        msg_cascada = "Este bot comenta y envía emojis automáticamente a los celulares seleccionados, respetando el intervalo.\n\n⚠️ IMPORTANTE: Mientras este bot corre, no uses los botones de Pre-Check, Inyectar o Instagram, ya que compartirán el control de la pantalla y ADB, provocando fallos."
+        ctk.CTkButton(title_fr, text="ℹ️ Ayuda", width=50, height=20, fg_color="#475569", hover_color="#334155", font=("Arial", 11), command=lambda: self.show_info_modal("Bot en Cascada", msg_cascada)).pack(side="left", padx=10)
         
         # Checkboxes for type of interaction
         type_row = ctk.CTkFrame(bot_frame, fg_color="transparent")
@@ -2089,6 +2113,9 @@ class MarketingeoApp(ctk.CTk):
         ctk.CTkCheckBox(type_row, text="Emojis Verdes", variable=self.kick_bot_type_emojis, font=("Arial", 12)).pack(side="left")
         self.kick_bot_type_ai = ctk.CTkCheckBox(type_row, text="🤖 Modo IA (Orgánico)", text_color="#FCD34D", font=("Arial", 12, "bold"))
         self.kick_bot_type_ai.pack(side="left", padx=10)
+        
+        msg_ia = "El Modo Inteligencia Artificial (Orgánico) ignora las casillas de Texto y Emojis.\n\nAl activarlo, cada celular decidirá por sí mismo qué hacer basado en su Personalidad oculta (Fanático, Fantasma, etc.).\n\nAdemás, podrás PAUSAR celulares individualmente desde el 'Panel de Control' sin detener el lote completo."
+        ctk.CTkButton(type_row, text="ℹ️ Info", width=40, height=20, fg_color="#475569", hover_color="#334155", font=("Arial", 10), command=lambda: self.show_info_modal("Modo IA Orgánico", msg_ia)).pack(side="left", padx=5)
 
         interval_row = ctk.CTkFrame(bot_frame, fg_color="transparent")
         interval_row.pack(fill="x", padx=15, pady=(0,5))
@@ -2691,6 +2718,11 @@ class MarketingeoApp(ctk.CTk):
         self.log_msg(" [Bot] Bot en Cascada DETENIDO.", "warn")
         if hasattr(self, 'kick_bot_start_btn'):
             self.kick_bot_start_btn.configure(text=" INICIAR BOT", fg_color="#16A34A")
+            
+        # Remove UI Safety Locks
+        if hasattr(self, 'btn_kick_login'): self.btn_kick_login.configure(state="normal")
+        if hasattr(self, 'btn_kick'): self.btn_kick.configure(state="normal")
+        if hasattr(self, 'btn_kick_chat'): self.btn_kick_chat.configure(state="normal")
 
     def _cascade_loop(self):
         import time
