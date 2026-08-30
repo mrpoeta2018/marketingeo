@@ -2445,7 +2445,7 @@ class MarketingeoApp(ctk.CTk):
             comments = ["🔥", "Muy bueno!", "Excelente"]
             
         msg = random.choice(comments)
-        safe_msg = msg.replace(" ", "%s").replace("&", "\&").replace(";", "\;").replace("(", "\(").replace(")", "\)").replace("'", "\'").replace('"', '\"')
+        safe_msg = msg.replace(" ", "%s").replace("&", r"\&").replace(";", r"\;").replace("(", r"\(").replace(")", r"\)").replace("'", r"\'").replace('"', r'\"')
         self.adb.run_command(["shell", "input", "text", safe_msg], s)
         time.sleep(1)
         
