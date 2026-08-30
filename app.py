@@ -2335,6 +2335,17 @@ class MarketingeoApp(ctk.CTk):
             
         url = urls[0]
         deep_link = url
+        # Auto-detect if it's a profile or a reel
+        if "instagram.com" in url:
+            if "reel" not in url and "/p/" not in url:
+                import re
+                m = re.search(r"instagram\.com/([^/?]+)", url)
+                if m:
+                    deep_link = f"http://instagram.com/_u/{m.group(1)}"
+        else:
+            # Assume it's just a username
+            if "http" not in url:
+                deep_link = f"http://instagram.com/_u/{url.replace('@', '')}"
             
         self.ig_saved_urls = urls
         
@@ -2503,7 +2514,16 @@ class MarketingeoApp(ctk.CTk):
                         if lbl: self.after(0, lambda lbl=lbl: lbl.configure(text=" Auto-Reparando", text_color="#F59E0B"))
                         urls = [u.strip() for u in getattr(self, 'ig_saved_urls', ["https://instagram.com/mrpoeta_oficial"])]
                         url = urls[0] if urls else "https://instagram.com/mrpoeta_oficial"
-                        self.adb.run_command(["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", f"'{url}'", "com.instagram.android"], s)
+                        deep_link = url
+                        if "instagram.com" in url:
+                            if "reel" not in url and "/p/" not in url:
+                                import re
+                                m = re.search(r"instagram\.com/([^/?]+)", url)
+                                if m:
+                                    deep_link = f"http://instagram.com/_u/{m.group(1)}"
+                        elif "http" not in url:
+                            deep_link = f"http://instagram.com/_u/{url.replace('@', '')}"
+                        self.adb.run_command(["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", f"'{deep_link}'", "com.instagram.android"], s)
                         time.sleep(10)
                     # --------------------------
                     
