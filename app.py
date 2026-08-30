@@ -2334,12 +2334,7 @@ class MarketingeoApp(ctk.CTk):
             return
             
         url = urls[0]
-        # Si es un perfil, intentar armar intent nativo
-        import re
         deep_link = url
-        m = re.search(r"instagram\.com/([^/?]+)", url)
-        if m and "reel" not in url and "p" not in url:
-            deep_link = f"instagram://user?username={m.group(1)}"
             
         self.ig_saved_urls = urls
         
@@ -2506,8 +2501,8 @@ class MarketingeoApp(ctk.CTk):
                         self.log_msg(f" [{s[-4:]}] IG cerrado. Auto-Reparando (Guardián)...", "warn")
                         lbl = self.device_ui_map[s].get("timer")
                         if lbl: self.after(0, lambda lbl=lbl: lbl.configure(text=" Auto-Reparando", text_color="#F59E0B"))
-                        urls = [u.strip() for u in getattr(self, 'ig_saved_urls', ["instagram://user?username=mrpoeta_oficial"])]
-                        url = urls[0] if urls else "instagram://user?username=mrpoeta_oficial"
+                        urls = [u.strip() for u in getattr(self, 'ig_saved_urls', ["https://instagram.com/mrpoeta_oficial"])]
+                        url = urls[0] if urls else "https://instagram.com/mrpoeta_oficial"
                         self.adb.run_command(["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", f"'{url}'", "com.instagram.android"], s)
                         time.sleep(10)
                     # --------------------------
