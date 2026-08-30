@@ -2245,7 +2245,7 @@ class MarketingeoApp(ctk.CTk):
         ctk.CTkLabel(com_frame, text=" Tus Comentarios (Escribe uno por renglón):", font=("Arial", 14, "bold"), text_color="white").pack(anchor="w")
         self.ig_chat_textbox = ctk.CTkTextbox(com_frame, height=100)
         self.ig_chat_textbox.pack(fill="x", pady=5)
-        self.ig_chat_textbox.insert("1.0", "¡Qué buen video!\nJajaja total\n🔥\nMe encantó\nSaludos")
+        self.ig_chat_textbox.insert("1.0", "¡Qué buen video!\nJajaja total\nBrutal!!\nMe encantó\nSaludos")
         
         # Batch selector IG
         batch_frame = ctk.CTkFrame(ig_frame, fg_color="transparent")
