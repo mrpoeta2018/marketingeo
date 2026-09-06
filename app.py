@@ -2498,7 +2498,11 @@ class MarketingeoApp(ctk.CTk):
                     if not getattr(self, '_ig_cascade_running', False): return
                     s = dev['serial']
                     
-                    ai_state = self.device_ai_states.get(s, {"paused": False, "personality": "🤖 Normal"})
+                    ai_state = self.device_ai_states.get(s, {"paused": False, "personality": "🤖 Normal", "quarantine": False})
+                    if ai_state.get("quarantine", False):
+                        lbl = self.device_ui_map[s].get("timer")
+                        if lbl: self.after(0, lambda lbl=lbl: lbl.configure(text=" 🚨 CUARENTENA", text_color="#EF4444"))
+                        return
                     if ai_state.get("paused", False):
                         self.log_msg(f" [{s[-4:]}] Omitido (En Pausa).", "warn")
                         lbl = self.device_ui_map[s].get("timer")
@@ -2874,6 +2878,7 @@ class MarketingeoApp(ctk.CTk):
             self.kick_bot_start_btn.configure(text=" 🟢 CASCADA ACTIVA", fg_color="#F59E0B")
             
         threading.Thread(target=self._cascade_loop, daemon=True).start()
+        threading.Thread(target=self._guardian_patrol_loop, daemon=True).start()
 
     def stop_cascade_bot(self):
         """Detiene el bot de comentarios en cascada."""
@@ -2886,6 +2891,68 @@ class MarketingeoApp(ctk.CTk):
         if hasattr(self, 'btn_kick_login'): self.btn_kick_login.configure(state="normal")
         if hasattr(self, 'btn_kick'): self.btn_kick.configure(state="normal")
         if hasattr(self, 'btn_kick_chat'): self.btn_kick_chat.configure(state="normal")
+
+    def _guardian_patrol_loop(self):
+        import time
+        self.guardian_strikes = getattr(self, 'guardian_strikes', {})
+        
+        while getattr(self, '_cascade_running', False):
+            devices = getattr(self.engine, 'active_devices', [])
+            if not devices:
+                time.sleep(10)
+                continue
+
+            for dev in devices:
+                if not getattr(self, '_cascade_running', False): break
+                s = dev['serial']
+                ai_state = self.device_ai_states.get(s, {})
+                
+                # Ignorar si ya está en cuarentena o pausa
+                if ai_state.get("quarantine", False) or ai_state.get("paused", False):
+                    continue
+
+                try:
+                    # XML Dump Silencioso (1 a la vez para no congelar los demás)
+                    self.adb.run_command(["shell", "uiautomator", "dump", "/sdcard/patrol_dump.xml"], s)
+                    stdout, _, _ = self.adb.run_command(["shell", "cat", "/sdcard/patrol_dump.xml"], s)
+                    
+                    if stdout and ("fuera de línea" in stdout or "Volver" in stdout or "offline" in stdout.lower()):
+                        strikes = self.guardian_strikes.get(s, 0) + 1
+                        self.guardian_strikes[s] = strikes
+                        
+                        if strikes >= 3:
+                            self.log_msg(f" [PATRULLA] 🚨 {s[-4:]} falló 3 veces seguidas. Enviado a CUARENTENA.", "error")
+                            ai_state["quarantine"] = True
+                            self.device_ai_states[s] = ai_state
+                            lbl = self.device_ui_map[s].get("timer")
+                            if lbl: self.after(0, lambda lbl=lbl: lbl.configure(text=" 🚨 CUARENTENA", text_color="#EF4444"))
+                        else:
+                            self.log_msg(f" [PATRULLA] ⚠️ {s[-4:]} está fuera de línea. Strike {strikes}/3. Reinyectando link...", "warn")
+                            # Reiniciar la app forzosamente si es el strike 2
+                            if strikes == 2:
+                                self.adb.run_command(["shell", "am", "force-stop", "com.kick.mobile"], s)
+                                time.sleep(1)
+                            
+                            urls = [u.strip() for u in self.kick_textbox.get().strip().split('\n') if u.strip()]
+                            if urls:
+                                url = urls[0]
+                                self.adb.run_command(["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", f"'{url}'", "com.kick.mobile"], s)
+                    else:
+                        # Si encontramos la caja de comentarios, el stream está activo y sano.
+                        if stdout and "Enviar mensaje" in stdout:
+                            self.guardian_strikes[s] = 0
+                except Exception as e:
+                    pass
+                
+                # Pausa de 10 segundos entre cada celular escaneado para no saturar el sistema
+                for _ in range(10):
+                    if not getattr(self, '_cascade_running', False): break
+                    time.sleep(1)
+                    
+            # Pausa de 30 segundos entre cada ronda de patrulla a toda la granja
+            for _ in range(30):
+                if not getattr(self, '_cascade_running', False): break
+                time.sleep(1)
 
     def _cascade_loop(self):
         import time
@@ -2920,7 +2987,11 @@ class MarketingeoApp(ctk.CTk):
                     if not getattr(self, '_cascade_running', False): return
                     s = dev['serial']
                     
-                    ai_state = self.device_ai_states.get(s, {"paused": False, "personality": "🤖 Normal"})
+                    ai_state = self.device_ai_states.get(s, {"paused": False, "personality": "🤖 Normal", "quarantine": False})
+                    if ai_state.get("quarantine", False):
+                        lbl = self.device_ui_map[s].get("timer")
+                        if lbl: self.after(0, lambda lbl=lbl: lbl.configure(text=" 🚨 CUARENTENA", text_color="#EF4444"))
+                        return
                     if ai_state.get("paused", False):
                         self.log_msg(f" [{s[-4:]}] Omitido (En Pausa).", "warn")
                         lbl = self.device_ui_map[s].get("timer")
