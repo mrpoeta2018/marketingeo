@@ -2129,6 +2129,24 @@ class MarketingeoApp(ctk.CTk):
         self.kick_bot_start_btn.pack(side="left", padx=(0,10))
         self.kick_bot_stop_btn = ctk.CTkButton(btn_row, text="DETENER BOT", fg_color="#dc2626", hover_color="#b91c1c", font=("Arial", 13, "bold"), command=self.stop_cascade_bot)
         self.kick_bot_stop_btn.pack(side="left")
+        
+        # --- Escudos Visuales ---
+        shields_frame = ctk.CTkFrame(bot_frame, fg_color="transparent")
+        shields_frame.pack(fill="x", padx=15, pady=(0, 15))
+        ctk.CTkLabel(shields_frame, text="Escudos:", font=("Arial", 11, "bold"), text_color="#94A3B8").pack(side="left", padx=(0, 10))
+        
+        msg_patrulla = "🛡️ Escudo Patrulla (Guardián de Caídas)\n\nTrabaja en modo invisible (segundo plano) buscando pantallas caídas (Fuera de Línea).\n\n▶ Si la pantalla se cae, reinyecta el link.\n▶ Si el celular no puede volver al stream tras 3 intentos, lo manda a 🚨 CUARENTENA aislandolo del bot principal.\n▶ Usa el Método Spotify para proteger a los celulares sanos."
+        btn_patrulla = ctk.CTkButton(shields_frame, text="🛡️ Patrulla", width=60, height=22, fg_color="#059669", hover_color="#047857", font=("Arial", 11, "bold"), command=lambda: self.show_info_modal("Escudo Patrulla", msg_patrulla))
+        btn_patrulla.pack(side="left", padx=5)
+        
+        msg_choque = "🔒 Escudo Anti-Choques\n\nCuando el Bot Cascada está encendido, este escudo bloquea automáticamente los demás botones manuales de la interfaz.\n\n▶ Evita que por error envíes comandos simultáneos que saturen el cable USB o congelen los celulares."
+        btn_choque = ctk.CTkButton(shields_frame, text="🔒 Anti-Choques", width=60, height=22, fg_color="#2563EB", hover_color="#1D4ED8", font=("Arial", 11, "bold"), command=lambda: self.show_info_modal("Escudo Anti-Choques", msg_choque))
+        btn_choque.pack(side="left", padx=5)
+        
+        msg_cuarentena = "☣️ Escudo Cuarentena\n\nEs un mecanismo de defensa para la granja.\n\n▶ Si un teléfono tiene la batería muerta, la app crasheada o no inicia sesión, se le pone la etiqueta 🚨 CUARENTENA.\n▶ El bot principal lo ignorará a velocidad luz, para no perder tiempo ni frenar el farmeo en los demás.\n▶ Se resetea deteniendo e iniciando el bot."
+        btn_cuarentena = ctk.CTkButton(shields_frame, text="☣️ Cuarentena", width=60, height=22, fg_color="#DC2626", hover_color="#B91C1C", font=("Arial", 11, "bold"), command=lambda: self.show_info_modal("Escudo Cuarentena", msg_cuarentena))
+        btn_cuarentena.pack(side="left", padx=5)
+        
         self.kick_auto = ctk.BooleanVar(value=False)  # compat
         self.kick_interact = ctk.BooleanVar(value=False)  # compat
         
