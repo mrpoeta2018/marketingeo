@@ -2330,7 +2330,7 @@ class MarketingeoApp(ctk.CTk):
                     s = dev['serial']
                     lbl.configure(text=f"Deteniendo dispositivo {i+1} de {total}...\n[{s[-4:]}]")
                     self.adb.run_command(["shell", "am", "force-stop", "com.instagram.android"], s)
-                    self.adb.run_command(["shell", "am", "force-stop", "com.kick.mobile"], s)
+                    self.adb.run_command(["shell", "input", "keyevent", "4"], s)
                     self.adb.run_command(["shell", "input", "keyevent", "3"], s)
                     time.sleep(2) # Pausa de 2 segundos entre cada telefono para evitar que ADB colapse
             
@@ -2649,7 +2649,7 @@ class MarketingeoApp(ctk.CTk):
         self.log_msg(f"🕵️ Iniciando Búsqueda Humana en Kick para: {streamer_name}...", "info")
         
         self._cleanup_background_apps(serial, exclude_pkg="com.kick.mobile")
-        self.adb.run_command(["shell", "am", "force-stop", "com.kick.mobile"], serial)
+        self.adb.run_command(["shell", "input", "keyevent", "4"], serial)
         s_sleep(1.0)
         
         self.adb.run_command(["shell", "am", "start", "-n", "com.kick.mobile/com.kick.mobile.MainActivity"], serial)
@@ -3000,7 +3000,7 @@ class MarketingeoApp(ctk.CTk):
                             self.log_msg(f" [PATRULLA] ⚠️ {s[-4:]} está fuera de línea. Strike {strikes}/3. Reinyectando link...", "warn")
                             # Reiniciar la app forzosamente si es el strike 2
                             if strikes == 2:
-                                self.adb.run_command(["shell", "am", "force-stop", "com.kick.mobile"], s)
+                                self.adb.run_command(["shell", "input", "keyevent", "4"], s)
                                 time.sleep(1)
                             
                             urls = [u.strip() for u in self.kick_textbox.get().strip().split('\n') if u.strip()]
@@ -3376,7 +3376,7 @@ class MarketingeoApp(ctk.CTk):
                 self.log_msg(f"Abriendo Kick URL en {s}...", "info")
                 
                 self._cleanup_background_apps(s, exclude_pkg="com.kick.mobile")
-                self.adb.run_command(["shell", "am", "force-stop", "com.kick.mobile"], s)
+                self.adb.run_command(["shell", "input", "keyevent", "4"], s)
                 time.sleep(1)
                 
                 self.adb.run_command(["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", f"'{url}'", "com.kick.mobile"], s)
@@ -3641,7 +3641,7 @@ class MarketingeoApp(ctk.CTk):
             if getattr(self, 'stop_social_threads', False): return
             s = dev['serial']
             self.acc_log(f" [{s[-4:]}] Verificando sesion actual de Kick...", "info")
-            self.adb.run_command(["shell", "am", "force-stop", "com.kick.mobile"], s)
+            self.adb.run_command(["shell", "input", "keyevent", "4"], s)
             time.sleep(1)
             self.adb.run_command(["shell", "am", "start", "-n", "com.kick.mobile/com.kick.mobile.MainActivity"], s)
             time.sleep(10)
@@ -3718,7 +3718,7 @@ class MarketingeoApp(ctk.CTk):
             for email_index in indices_to_try:
                 if getattr(self, 'stop_signup', False): break
                 
-                self.adb.run_command(["shell", "am", "force-stop", "com.kick.mobile"], serial)
+                self.adb.run_command(["shell", "input", "keyevent", "4"], serial)
                 self.adb.run_command(["shell", "pm", "clear", "com.kick.mobile"], serial)
                 s_sleep(2)
                 self.adb.run_command(["shell", "am", "start", "-n", "com.kick.mobile/com.kick.mobile.MainActivity"], serial)
