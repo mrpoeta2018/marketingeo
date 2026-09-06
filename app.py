@@ -2911,7 +2911,7 @@ class MarketingeoApp(ctk.CTk):
             self.kick_bot_start_btn.configure(text=" 🟢 CASCADA ACTIVA", fg_color="#F59E0B")
             
         threading.Thread(target=self._cascade_loop, daemon=True).start()
-        threading.Thread(target=self._guardian_patrol_loop, daemon=True).start()
+        # threading.Thread(target=self._guardian_patrol_loop, daemon=True).start()
 
     def stop_cascade_bot(self):
         """Detiene el bot de comentarios en cascada."""
