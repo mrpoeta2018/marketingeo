@@ -729,7 +729,111 @@ class MarketingeoApp(ctk.CTk):
             return False
         return time.time() < self.device_locks[serial]
 
+    
+    def show_autopilot_popup(self):
+        import customtkinter as ctk
+        import threading
+        import time
+        
+        modal = ctk.CTkToplevel(self)
+        modal.title("Piloto Automático")
+        modal.geometry("500x300")
+        modal.attributes("-topmost", True)
+        modal.protocol("WM_DELETE_WINDOW", lambda: self.cancel_autopilot(modal))
+        
+        ctk.CTkLabel(modal, text="🤖 PILOTO AUTOMÁTICO INICIANDO", font=("Arial", 20, "bold"), text_color="#10B981").pack(pady=(30,10))
+        
+        self.autopilot_lbl = ctk.CTkLabel(modal, text="El sistema se configurará e iniciará solo en 5:00", font=("Arial", 16))
+        self.autopilot_lbl.pack(pady=10)
+        
+        btn_frame = ctk.CTkFrame(modal, fg_color="transparent")
+        btn_frame.pack(pady=20)
+        
+        ctk.CTkButton(btn_frame, text="✅ Iniciar Ahora", fg_color="#2563EB", command=lambda: self.start_autopilot(modal)).pack(side="left", padx=10)
+        ctk.CTkButton(btn_frame, text="🛑 Operar Manual", fg_color="#DC2626", command=lambda: self.cancel_autopilot(modal)).pack(side="left", padx=10)
+        
+        self.autopilot_active = True
+        self.autopilot_time = 300
+        
+        def countdown():
+            while self.autopilot_active and self.autopilot_time > 0:
+                mins, secs = divmod(self.autopilot_time, 60)
+                try:
+                    self.autopilot_lbl.configure(text=f"El sistema se configurará e iniciará solo en {mins}:{secs:02d}")
+                except: pass
+                time.sleep(1)
+                self.autopilot_time -= 1
+                
+            if self.autopilot_active and self.autopilot_time <= 0:
+                try: self.start_autopilot(modal)
+                except: pass
+                
+        threading.Thread(target=countdown, daemon=True).start()
+
+    def cancel_autopilot(self, modal):
+        self.autopilot_active = False
+        try: modal.destroy()
+        except: pass
+        self.log_msg("🛑 Piloto automático cancelado. Modo Manual activado.", "warn")
+
+    def start_autopilot(self, modal):
+        self.autopilot_active = False
+        try: modal.destroy()
+        except: pass
+        self.log_msg("🤖 Iniciando Secuencia de Piloto Automático...", "info")
+        import threading
+        threading.Thread(target=self._autopilot_thread, daemon=True).start()
+
+    def _autopilot_thread(self):
+        import time
+        
+        self.log_msg("🤖 [Auto] Escaneando dispositivos...", "info")
+        self.scan_devices()
+        time.sleep(10) # Dar tiempo a que el escaneo termine
+        
+        self.log_msg("🤖 [Auto] Seleccionando todos los dispositivos...", "info")
+        self.select_all_devices()
+        time.sleep(2)
+        
+        # Opcional: Probar proxys si hubiera, pero para el piloto auto asumo que no hay o usa los que esten
+        # Como pidio: "luego crea el tunel"
+        self.log_msg("🤖 [Auto] Creando túnel ADB (Iniciando Granja)...", "info")
+        self.no_proxy_var.set(True) # Para evitar el modal de "sin proxies"
+        self.attempt_start()
+        
+        # Esperar a que Gnirehtet termine de instalarse
+        self.log_msg("🤖 [Auto] Esperando 30s a que el túnel se establezca...", "info")
+        time.sleep(30)
+        
+        # Configurar variables para Kick
+        self.log_msg("🤖 [Auto] Configurando link y parámetros...", "info")
+        target_url = "https://kick.com/sxb"
+        
+        # Intentar inyectar la URL en la caja de texto
+        if target_url not in self.kick_saved_urls:
+            self.kick_saved_urls.append(target_url)
+        try:
+            self.kick_textbox.configure(values=self.kick_saved_urls)
+            self.kick_textbox.set(target_url)
+        except: pass
+        
+        # Activar Texto y Emojis, desactivar IA
+        try:
+            self.kick_bot_type_comments.set(True)
+            self.kick_bot_type_emojis.set(True)
+            self.kick_bot_type_ai.set(False)
+            self.kick_bot_interval.set("2") # 2 minutos por defecto
+            self.shield_patrol_var.set(True) # Activa la secuencia maestra
+        except Exception as e:
+            self.log_msg(f"Error configurando UI: {e}", "error")
+            
+        self.log_msg("🤖 [Auto] ¡Configuración lista! Disparando Bot en Cascada...", "success")
+        # Iniciar bot (esto ahora empezará por el Ciclo 5, haciendo Detener -> PreCheck -> Inyectar al instante)
+        self.start_cascade_bot()
+
+
     def _finalize_boot(self, valid_key):
+        self.after(2000, self.show_autopilot_popup) # Lanzar el popup despues de 2s
         debug_log("Finalizando arranque...")
         speak("Acceso concedido. Abriendo panel de control.")
         # Guardar clave válida
@@ -3037,10 +3141,10 @@ class MarketingeoApp(ctk.CTk):
         import random
         from concurrent.futures import ThreadPoolExecutor
 
-        cycle_count = 1
+        cycle_count = 5
         while getattr(self, '_cascade_running', False):
             # --- SECUENCIA MAESTRA (Auto-Farm) ---
-            if cycle_count > 1 and cycle_count % 2 == 0 and getattr(self, "shield_patrol_var", None) and self.shield_patrol_var.get():
+            if cycle_count % 5 == 0 and getattr(self, "shield_patrol_var", None) and self.shield_patrol_var.get():
                 self.log_msg(f" 🔄 [CICLO {cycle_count}] Iniciando Secuencia Maestra (Stop -> PreCheck -> Inject)...")
                 
                 try:
