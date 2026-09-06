@@ -2109,9 +2109,14 @@ class MarketingeoApp(ctk.CTk):
         type_row.pack(fill="x", padx=15, pady=(0, 5))
         self.kick_bot_type_comments = ctk.BooleanVar(value=True)
         self.kick_bot_type_emojis = ctk.BooleanVar(value=False)
-        ctk.CTkCheckBox(type_row, text="Texto", variable=self.kick_bot_type_comments, font=("Arial", 12)).pack(side="left", padx=(0,10))
-        ctk.CTkCheckBox(type_row, text="Emojis Verdes", variable=self.kick_bot_type_emojis, font=("Arial", 12)).pack(side="left")
-        self.kick_bot_type_ai = ctk.CTkCheckBox(type_row, text="🤖 Modo IA (Orgánico)", text_color="#FCD34D", font=("Arial", 12, "bold"))
+        
+        self.chk_kick_text = ctk.CTkCheckBox(type_row, text="Texto", variable=self.kick_bot_type_comments, font=("Arial", 12))
+        self.chk_kick_text.pack(side="left", padx=(0,10))
+        
+        self.chk_kick_emojis = ctk.CTkCheckBox(type_row, text="Emojis Verdes", variable=self.kick_bot_type_emojis, font=("Arial", 12))
+        self.chk_kick_emojis.pack(side="left")
+        
+        self.kick_bot_type_ai = ctk.CTkCheckBox(type_row, text=" 🧠 Modo IA (Orgánico)", text_color="#FCD34D", font=("Arial", 12, "bold"), command=self.toggle_kick_ia_mode)
         self.kick_bot_type_ai.pack(side="left", padx=10)
         
         msg_ia = "El Modo Inteligencia Artificial (Orgánico) ignora las casillas de Texto y Emojis.\n\nAl activarlo, cada celular decidirá por sí mismo qué hacer basado en su Personalidad oculta (Fanático, Fantasma, etc.).\n\nAdemás, podrás PAUSAR celulares individualmente desde el 'Panel de Control' sin detener el lote completo."
@@ -2875,6 +2880,22 @@ class MarketingeoApp(ctk.CTk):
                 safe_char = safe_char.replace("(", "\\(").replace(")", "\\)").replace("|", "\\|")
                 self.adb.run_command(["shell", "input", "text", safe_char], serial)
             time.sleep(0.05)
+    def toggle_kick_ia_mode(self):
+        """Interbloqueo interactivo entre IA y casillas manuales con modal."""
+        if self.kick_bot_type_ai.get():
+            self.chk_kick_text.configure(state="disabled")
+            self.chk_kick_emojis.configure(state="disabled")
+            self.show_info_modal("🧠 Modo IA Activado", "Las opciones manuales se han bloqueado.
+
+El cerebro de la Inteligencia Artificial acaba de tomar el control total de la granja.
+
+Cada celular ahora es autónomo y decidirá qué hacer basándose en su personalidad (Fanático, Fantasma, etc.) para simular un comportamiento 100% humano e indetectable.")
+        else:
+            self.chk_kick_text.configure(state="normal")
+            self.chk_kick_emojis.configure(state="normal")
+            self.show_info_modal("🤖 Modo Robot (IA Apagada)", "La Inteligencia Artificial se ha desconectado.
+
+Acabas de retomar el control manual. Ahora los celulares se comportarán como robots estrictos y solo enviarán exactamente lo que les marques en las casillas (Texto y/o Emojis).")
 
     def start_cascade_bot(self):
         """Inicia el bot de comentarios en cascada."""
