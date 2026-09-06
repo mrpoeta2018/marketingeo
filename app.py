@@ -3037,7 +3037,51 @@ class MarketingeoApp(ctk.CTk):
         import random
         from concurrent.futures import ThreadPoolExecutor
 
+        cycle_count = 1
         while getattr(self, '_cascade_running', False):
+            # --- SECUENCIA MAESTRA (Auto-Farm) ---
+            if cycle_count > 1 and cycle_count % 2 == 0 and getattr(self, "shield_patrol_var", None) and self.shield_patrol_var.get():
+                self.log_msg(f" 🔄 [CICLO {cycle_count}] Iniciando Secuencia Maestra (Stop -> PreCheck -> Inject)...")
+                
+                urls = [u.strip() for u in getattr(self, 'kick_saved_urls', ["https://kick.com"])]
+                url = urls[0] if urls else "https://kick.com"
+                import time
+                
+                # 1. DETENER BOTS (Regreso al Home seguro)
+                self.log_msg(" 🛑 1. Deteniendo (Botón Atrás x2)...")
+                for s in self.selected_devices:
+                    self.adb.run_command(["shell", "input", "keyevent", "4"], s)
+                    time.sleep(0.5)
+                    self.adb.run_command(["shell", "input", "keyevent", "4"], s)
+                time.sleep(2)
+                
+                # 2. PRE-CHECK (Asegurar Logueo)
+                self.log_msg(" 🔑 2. Ejecutando Pre-Check...")
+                for s in self.selected_devices:
+                    self.adb.run_command(["shell", "am", "start", "-n", "com.kick.mobile/com.kick.mobile.MainActivity"], s)
+                time.sleep(5)
+                
+                for s in self.selected_devices:
+                    out = self.adb.run_command(["shell", "uiautomator", "dump", "/sdcard/window_dump.xml"], s)
+                    if out:
+                        xml_data = self.adb.run_command(["shell", "cat", "/sdcard/window_dump.xml"], s)
+                        if xml_data and "Continuar con Google" in xml_data:
+                            self.log_msg(f" [{s[-4:]}] ⚠️ Sesion caída! Logueando...")
+                            self.adb.run_command(["shell", "input", "tap", "240", "600"], s)
+                            time.sleep(5)
+                            self.adb.run_command(["shell", "input", "tap", "240", "400"], s)
+                            time.sleep(5)
+                            
+                # 3. INYECTAR VISITAS (Hard Refresh)
+                self.log_msg(" ▶️ 3. Inyectando URL de Visitas limpia...")
+                for s in self.selected_devices:
+                    self.adb.run_command(["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", f"'{url}'", "-f", "0x10008000", "com.kick.mobile"], s)
+                    time.sleep(1)
+                    
+                self.log_msg(" ✅ Secuencia Maestra Completada. Esperando 15s...")
+                time.sleep(15)
+            # ---------------------------------------------
+
             devices = getattr(self.engine, 'active_devices', [])
             if not devices:
                 self.log_msg(" [Bot] Sin dispositivos. Esperando...", "warn")
