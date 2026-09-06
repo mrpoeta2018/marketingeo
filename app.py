@@ -2979,8 +2979,9 @@ class MarketingeoApp(ctk.CTk):
                                 offset = 12 + (y * w + x) * 4
                                 r, g, b, a = out[offset:offset+4]
                                 
+                                # self.log_msg(f" [DEBUG] Color en centro: R:{r} G:{g} B:{b}") # Descomentar para debug
                                 # Detectar Verde Brillante de Kick (Ej: R=83, G=252, B=24)
-                                if g > 200 and r < 120 and b < 100:
+                                if g > (r * 1.5) and g > (b * 1.5) and g > 80: # Relajado para soportar pantalla atenuada (Dimmed Screen)
                                     is_offline = True
                                     self.log_msg(f" [PATRULLA] 👁️ Visión de Color detectó botón verde (R:{r} G:{g} B:{b}).")
                     except Exception as e:
