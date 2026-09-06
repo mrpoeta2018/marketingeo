@@ -2141,7 +2141,7 @@ class MarketingeoApp(ctk.CTk):
         ctk.CTkLabel(shields_frame, text="Escudos (Activa/Desactiva):", font=("Arial", 11, "bold"), text_color="#94A3B8").pack(side="left", padx=(0, 10))
         
         self.shield_patrol_var = ctk.BooleanVar(value=True)
-        self.shield_patrol_switch = ctk.CTkSwitch(shields_frame, text="🛡️ Patrulla", variable=self.shield_patrol_var, font=("Arial", 11, "bold"), progress_color="#059669")
+        self.shield_patrol_switch = ctk.CTkSwitch(shields_frame, text="⚡ Auto-Reinyector", variable=self.shield_patrol_var, font=("Arial", 11, "bold"), progress_color="#059669")
         self.shield_patrol_switch.pack(side="left", padx=10)
         
         self.shield_anti_var = ctk.BooleanVar(value=True)
@@ -2150,7 +2150,7 @@ class MarketingeoApp(ctk.CTk):
         
         self.shield_quar_var = ctk.BooleanVar(value=True)
         self.shield_quar_switch = ctk.CTkSwitch(shields_frame, text="☣️ Cuarentenas", variable=self.shield_quar_var, font=("Arial", 11, "bold"), progress_color="#DC2626")
-        self.shield_quar_switch.pack(side="left", padx=10)
+        # self.shield_quar_switch.pack(side="left", padx=10) # Obsoleto
         
         self.kick_auto = ctk.BooleanVar(value=False)  # compat
         self.kick_interact = ctk.BooleanVar(value=False)  # compat
