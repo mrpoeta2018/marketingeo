@@ -3156,7 +3156,8 @@ class MarketingeoApp(ctk.CTk):
                 
                 # 1. DETENER BOTS (Regreso al Home seguro)
                 self.log_msg(" 🛑 1. Deteniendo (Botón Atrás x2)...")
-                for s in self.selected_devices:
+                for dev in self.get_selected_devices():
+                    s = dev['serial']
                     self.adb.run_command(["shell", "input", "keyevent", "4"], s)
                     time.sleep(0.5)
                     self.adb.run_command(["shell", "input", "keyevent", "4"], s)
@@ -3164,11 +3165,13 @@ class MarketingeoApp(ctk.CTk):
                 
                 # 2. PRE-CHECK (Asegurar Logueo)
                 self.log_msg(" 🔑 2. Ejecutando Pre-Check...")
-                for s in self.selected_devices:
+                for dev in self.get_selected_devices():
+                    s = dev['serial']
                     self.adb.run_command(["shell", "am", "start", "-n", "com.kick.mobile/com.kick.mobile.MainActivity"], s)
                 time.sleep(5)
                 
-                for s in self.selected_devices:
+                for dev in self.get_selected_devices():
+                    s = dev['serial']
                     out = self.adb.run_command(["shell", "uiautomator", "dump", "/sdcard/window_dump.xml"], s)
                     if out:
                         xml_data = self.adb.run_command(["shell", "cat", "/sdcard/window_dump.xml"], s)
@@ -3183,7 +3186,8 @@ class MarketingeoApp(ctk.CTk):
                             
                 # 3. INYECTAR VISITAS (Hard Refresh)
                 self.log_msg(" ▶️ 3. Inyectando URL de Visitas limpia...")
-                for s in self.selected_devices:
+                for dev in self.get_selected_devices():
+                    s = dev['serial']
                     self.adb.run_command(["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", f"'{url}'", "com.kick.mobile"], s)
                     time.sleep(1)
                     
