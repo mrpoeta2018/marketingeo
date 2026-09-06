@@ -2912,20 +2912,20 @@ class MarketingeoApp(ctk.CTk):
                     continue
 
                 try:
-                    # 1. MÉTODO SPOTIFY (Escucha de Video Activo)
-                    # Revisamos si el motor de Android está reproduciendo video/audio.
-                    media_out, _, _ = self.adb.run_command(["shell", "dumpsys", "media_session"], s)
-                    if media_out and ("state=PlaybackState {state=3" in media_out or "state=3" in media_out):
-                        # ¡El stream está EN VIVO y reproduciendo perfectamente!
-                        self.guardian_strikes[s] = 0
-                        continue  # Saltamos al siguiente celular, este está sano.
-
-                    # 2. ESCÁNER VISUAL (Solo si el video no está sonando/reproduciendo)
+                    # Log visual para saber que la patrulla sigue viva
+                    self.after(0, lambda dev_s=s: self.log_msg(f" [PATRULLA] 👁️ Escaneando salud de {dev_s[-4:]}..."))
+                    
+                    # ESCÁNER VISUAL SEGURO (El método Spotify daba Falso Positivo porque Kick deja el audio en caché)
                     self.adb.run_command(["shell", "uiautomator", "dump", "/sdcard/patrol_dump.xml"], s)
                     stdout, _, _ = self.adb.run_command(["shell", "cat", "/sdcard/patrol_dump.xml"], s)
                     
-                    # Búsqueda ESTRICTA (Quitamos "Volver" y "offline" genérico para evitar Falsos Positivos del sistema o chat)
-                    if stdout and ("fuera de línea" in stdout or "is offline" in stdout):
+                    # Candado Doble: Buscamos AMBAS frases en la misma pantalla para confirmar que es el cartel de caída.
+                    is_offline = False
+                    if stdout:
+                        if ("fuera de línea" in stdout and "Volver" in stdout) or ("is offline" in stdout):
+                            is_offline = True
+                    
+                    if is_offline:
                         strikes = self.guardian_strikes.get(s, 0) + 1
                         self.guardian_strikes[s] = strikes
                         
