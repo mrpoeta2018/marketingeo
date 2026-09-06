@@ -2885,17 +2885,11 @@ class MarketingeoApp(ctk.CTk):
         if self.kick_bot_type_ai.get():
             self.chk_kick_text.configure(state="disabled")
             self.chk_kick_emojis.configure(state="disabled")
-            self.show_info_modal("🧠 Modo IA Activado", "Las opciones manuales se han bloqueado.
-
-El cerebro de la Inteligencia Artificial acaba de tomar el control total de la granja.
-
-Cada celular ahora es autónomo y decidirá qué hacer basándose en su personalidad (Fanático, Fantasma, etc.) para simular un comportamiento 100% humano e indetectable.")
+            self.show_info_modal("🧠 Modo IA Activado", "Las opciones manuales se han bloqueado.\n\nEl cerebro de la Inteligencia Artificial acaba de tomar el control total de la granja.\n\nCada celular ahora es autónomo y decidirá qué hacer basándose en su personalidad (Fanático, Fantasma, etc.) para simular un comportamiento 100% humano e indetectable.")
         else:
             self.chk_kick_text.configure(state="normal")
             self.chk_kick_emojis.configure(state="normal")
-            self.show_info_modal("🤖 Modo Robot (IA Apagada)", "La Inteligencia Artificial se ha desconectado.
-
-Acabas de retomar el control manual. Ahora los celulares se comportarán como robots estrictos y solo enviarán exactamente lo que les marques en las casillas (Texto y/o Emojis).")
+            self.show_info_modal("🤖 Modo Robot (IA Apagada)", "La Inteligencia Artificial se ha desconectado.\n\nAcabas de retomar el control manual. Ahora los celulares se comportarán como robots estrictos y solo enviarán exactamente lo que les marques en las casillas (Texto y/o Emojis).")
 
     def start_cascade_bot(self):
         """Inicia el bot de comentarios en cascada."""
