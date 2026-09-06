@@ -2136,16 +2136,16 @@ class MarketingeoApp(ctk.CTk):
         ctk.CTkLabel(shields_frame, text="Escudos:", font=("Arial", 11, "bold"), text_color="#94A3B8").pack(side="left", padx=(0, 10))
         
         msg_patrulla = "🛡️ Escudo Patrulla (Guardián de Caídas)\n\nTrabaja en modo invisible (segundo plano) buscando pantallas caídas (Fuera de Línea).\n\n▶ Si la pantalla se cae, reinyecta el link.\n▶ Si el celular no puede volver al stream tras 3 intentos, lo manda a 🚨 CUARENTENA aislandolo del bot principal.\n▶ Usa el Método Spotify para proteger a los celulares sanos."
-        btn_patrulla = ctk.CTkButton(shields_frame, text="🛡️ Patrulla", width=60, height=22, fg_color="#059669", hover_color="#047857", font=("Arial", 11, "bold"), command=lambda: self.show_info_modal("Escudo Patrulla", msg_patrulla))
-        btn_patrulla.pack(side="left", padx=5)
+        self.shield_patrol_btn = ctk.CTkButton(shields_frame, text="🛡️ Patrulla (Inactiva)", width=60, height=22, fg_color="#475569", hover_color="#334155", font=("Arial", 11, "bold"), command=lambda: self.show_info_modal("Escudo Patrulla", msg_patrulla))
+        self.shield_patrol_btn.pack(side="left", padx=5)
         
         msg_choque = "🔒 Escudo Anti-Choques\n\nCuando el Bot Cascada está encendido, este escudo bloquea automáticamente los demás botones manuales de la interfaz.\n\n▶ Evita que por error envíes comandos simultáneos que saturen el cable USB o congelen los celulares."
-        btn_choque = ctk.CTkButton(shields_frame, text="🔒 Anti-Choques", width=60, height=22, fg_color="#2563EB", hover_color="#1D4ED8", font=("Arial", 11, "bold"), command=lambda: self.show_info_modal("Escudo Anti-Choques", msg_choque))
-        btn_choque.pack(side="left", padx=5)
+        self.shield_anti_btn = ctk.CTkButton(shields_frame, text="🔒 Seguros (Inactivos)", width=60, height=22, fg_color="#475569", hover_color="#334155", font=("Arial", 11, "bold"), command=lambda: self.show_info_modal("Escudo Anti-Choques", msg_choque))
+        self.shield_anti_btn.pack(side="left", padx=5)
         
         msg_cuarentena = "☣️ Escudo Cuarentena\n\nEs un mecanismo de defensa para la granja.\n\n▶ Si un teléfono tiene la batería muerta, la app crasheada o no inicia sesión, se le pone la etiqueta 🚨 CUARENTENA.\n▶ El bot principal lo ignorará a velocidad luz, para no perder tiempo ni frenar el farmeo en los demás.\n▶ Se resetea deteniendo e iniciando el bot."
-        btn_cuarentena = ctk.CTkButton(shields_frame, text="☣️ Cuarentena", width=60, height=22, fg_color="#DC2626", hover_color="#B91C1C", font=("Arial", 11, "bold"), command=lambda: self.show_info_modal("Escudo Cuarentena", msg_cuarentena))
-        btn_cuarentena.pack(side="left", padx=5)
+        self.shield_quar_btn = ctk.CTkButton(shields_frame, text="☣️ 0 en Cuarentena", width=60, height=22, fg_color="#475569", hover_color="#334155", font=("Arial", 11, "bold"), command=lambda: self.show_info_modal("Escudo Cuarentena", msg_cuarentena))
+        self.shield_quar_btn.pack(side="left", padx=5)
         
         self.kick_auto = ctk.BooleanVar(value=False)  # compat
         self.kick_interact = ctk.BooleanVar(value=False)  # compat
@@ -2904,6 +2904,10 @@ class MarketingeoApp(ctk.CTk):
         self.log_msg(" [Bot] Bot en Cascada DETENIDO.", "warn")
         if hasattr(self, 'kick_bot_start_btn'):
             self.kick_bot_start_btn.configure(text=" INICIAR BOT", fg_color="#16A34A")
+            if hasattr(self, 'shield_patrol_btn'):
+                self.shield_patrol_btn.configure(text="🛡️ Patrulla (Inactiva)", fg_color="#475569")
+                self.shield_anti_btn.configure(text="🔒 Seguros (Inactivos)", fg_color="#475569")
+                self.shield_quar_btn.configure(text="☣️ 0 en Cuarentena", fg_color="#475569")
             
         # Remove UI Safety Locks
         if hasattr(self, 'btn_kick_login'): self.btn_kick_login.configure(state="normal")
@@ -2916,6 +2920,15 @@ class MarketingeoApp(ctk.CTk):
         
         while getattr(self, '_cascade_running', False):
             devices = getattr(self.engine, 'active_devices', [])
+            
+            # Dinámica UI: Contar cuantos están en cuarentena en tiempo real
+            quarantined = sum(1 for s in self.device_ai_states if self.device_ai_states[s].get("quarantine"))
+            if hasattr(self, 'shield_quar_btn'):
+                if quarantined > 0:
+                    self.after(0, lambda q=quarantined: self.shield_quar_btn.configure(text=f"☣️ {q} en Cuarentena", fg_color="#DC2626"))
+                else:
+                    self.after(0, lambda: self.shield_quar_btn.configure(text="☣️ 0 en Cuarentena", fg_color="#059669" if getattr(self, '_cascade_running', False) else "#475569"))
+
             if not devices:
                 time.sleep(10)
                 continue
