@@ -807,7 +807,7 @@ class MarketingeoApp(ctk.CTk):
         
         # Configurar variables para Kick
         self.log_msg("🤖 [Auto] Configurando link y parámetros...", "info")
-        target_url = "https://kick.com/sxb"
+        target_url = "https://kick.com/darkoztv"
         
         # Intentar inyectar la URL en la caja de texto
         if target_url not in self.kick_saved_urls:
