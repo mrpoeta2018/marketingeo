@@ -3043,8 +3043,11 @@ class MarketingeoApp(ctk.CTk):
             if cycle_count > 1 and cycle_count % 2 == 0 and getattr(self, "shield_patrol_var", None) and self.shield_patrol_var.get():
                 self.log_msg(f" 🔄 [CICLO {cycle_count}] Iniciando Secuencia Maestra (Stop -> PreCheck -> Inject)...")
                 
-                urls = [u.strip() for u in getattr(self, 'kick_saved_urls', ["https://kick.com"])]
-                url = urls[0] if urls else "https://kick.com"
+                try:
+                    current_url = self.kick_textbox.get().strip()
+                except:
+                    current_url = "https://kick.com"
+                url = current_url if current_url else "https://kick.com"
                 import time
                 
                 # 1. DETENER BOTS (Regreso al Home seguro)
@@ -3067,15 +3070,17 @@ class MarketingeoApp(ctk.CTk):
                         xml_data = self.adb.run_command(["shell", "cat", "/sdcard/window_dump.xml"], s)
                         if xml_data and "Continuar con Google" in xml_data:
                             self.log_msg(f" [{s[-4:]}] ⚠️ Sesion caída! Logueando...")
-                            self.adb.run_command(["shell", "input", "tap", "240", "600"], s)
-                            time.sleep(5)
-                            self.adb.run_command(["shell", "input", "tap", "240", "400"], s)
+                            # Usar la funcion oficial para encontrar el boton de Google con precision
+                            self.find_and_click_by_text(s, ["continuar con google", "continue with google", "google"], do_swipe=False)
+                            time.sleep(8)
+                            # Seleccionar la primera cuenta de Google (indice 0 = Y 310)
+                            self.adb.run_command(["shell", "input", "tap", "240", "310"], s)
                             time.sleep(5)
                             
                 # 3. INYECTAR VISITAS (Hard Refresh)
                 self.log_msg(" ▶️ 3. Inyectando URL de Visitas limpia...")
                 for s in self.selected_devices:
-                    self.adb.run_command(["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", f"'{url}'", "-f", "0x10008000", "com.kick.mobile"], s)
+                    self.adb.run_command(["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", f"'{url}'", "com.kick.mobile"], s)
                     time.sleep(1)
                     
                 self.log_msg(" ✅ Secuencia Maestra Completada. Esperando 15s...")
