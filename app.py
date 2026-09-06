@@ -2961,28 +2961,30 @@ class MarketingeoApp(ctk.CTk):
                     # Log visual para saber que la patrulla sigue viva
                     self.after(0, lambda dev_s=s: self.log_msg(f" [PATRULLA] 👁️ Escaneando salud de {dev_s[-4:]}..."))
                     
-                    # ESCÁNER VISUAL SEGURO (Corrección de Bug de Caché)
-                    # 1. Borramos la foto vieja. Si no lo hacemos, Android lee el archivo viejo cuando falla.
-                    self.adb.run_command(["shell", "rm", "/sdcard/patrol_dump.xml"], s)
-                    
-                    # 2. Tomamos foto nueva.
-                    dump_out, _, _ = self.adb.run_command(["shell", "uiautomator", "dump", "/sdcard/patrol_dump.xml"], s)
-                    
-                    # 3. EL TRUCO MAESTRO: Si uiautomator falla con "ERROR: could not get idle state", 
-                    # significa matemáticamente que hay un video corriendo a 60fps bloqueando el escáner. 
-                    # ¡Por lo tanto, el stream ESTÁ VIVO!
-                    if dump_out and "ERROR" in dump_out:
-                        self.guardian_strikes[s] = 0
-                        continue
-                        
-                    # 4. Si no hubo error, leemos la foto (significa que la pantalla estaba quieta/muerta)
-                    stdout, _, _ = self.adb.run_command(["shell", "cat", "/sdcard/patrol_dump.xml"], s)
-                    
+                    # VISIÓN DE COLOR (Color Vision Protocol)
+                    # Kick oculta el botón "Volver" del escáner XML (usando React Native), por lo que uiautomator es ciego.
+                    # Solución: Tomamos una captura RAW y leemos el píxel central donde siempre está el botón Verde "Volver".
                     is_offline = False
-                    if stdout and "No such file" not in stdout:
-                        out_lower = stdout.lower()
-                        if ("volver" in out_lower) and ("fuera de l" in out_lower or "offline" in out_lower):
-                            is_offline = True
+                    try:
+                        import subprocess
+                        # exec-out screencap es rapidísimo y no escribe en disco
+                        out = subprocess.check_output([self.adb_path, "-s", s, "exec-out", "screencap"], timeout=5)
+                        if len(out) > 100000:  # Si la captura es válida
+                            w = int.from_bytes(out[0:4], 'little')
+                            if w == 480 or w == 720:  # Soportar resoluciones comunes de la granja
+                                # Calcular byte del pixel central superior (donde siempre sale el botón verde)
+                                # Para 480x960, el botón Volver está entre Y=160 y Y=210, X=240
+                                x = w // 2
+                                y = 190 if w == 480 else 285 # aprox proporcional
+                                offset = 12 + (y * w + x) * 4
+                                r, g, b, a = out[offset:offset+4]
+                                
+                                # Detectar Verde Brillante de Kick (Ej: R=83, G=252, B=24)
+                                if g > 200 and r < 120 and b < 100:
+                                    is_offline = True
+                                    self.log_msg(f" [PATRULLA] 👁️ Visión de Color detectó botón verde (R:{r} G:{g} B:{b}).")
+                    except Exception as e:
+                        pass # Si falla el screencap (ej. cable desconectado), ignorar
 
                     if is_offline:
                         strikes = self.guardian_strikes.get(s, 0) + 1
