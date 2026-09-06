@@ -3007,7 +3007,14 @@ class MarketingeoApp(ctk.CTk):
                             urls = [u.strip() for u in self.kick_textbox.get().strip().split('\n') if u.strip()]
                             if urls:
                                 url = urls[0]
-                                self.adb.run_command(["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", f"'{url}'", "com.kick.mobile"], s)
+                                self.log_msg(f" ⚡ Saliendo al Home para reinicio limpio (BACK)...")
+                        self.adb.run_command(["shell", "input", "keyevent", "4"], s)
+                        import time
+                        time.sleep(1)
+                        self.adb.run_command(["shell", "input", "keyevent", "4"], s)
+                        time.sleep(1)
+                        self.log_msg(f" ⚡ Inyectando URL fresca...")
+                        self.adb.run_command(["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", f"'{url}'", "com.kick.mobile"], s)
                     else:
                         # Si encontramos la caja de comentarios, el stream está activo y sano.
                         if stdout and "Enviar mensaje" in stdout:
