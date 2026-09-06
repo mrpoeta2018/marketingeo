@@ -2967,22 +2967,29 @@ Acabas de retomar el control manual. Ahora los celulares se comportarán como ro
                     # Log visual para saber que la patrulla sigue viva
                     self.after(0, lambda dev_s=s: self.log_msg(f" [PATRULLA] 👁️ Escaneando salud de {dev_s[-4:]}..."))
                     
-                    # ESCÁNER VISUAL SEGURO (El método Spotify daba Falso Positivo porque Kick deja el audio en caché)
-                    self.adb.run_command(["shell", "uiautomator", "dump", "/sdcard/patrol_dump.xml"], s)
+                    # ESCÁNER VISUAL SEGURO (Corrección de Bug de Caché)
+                    # 1. Borramos la foto vieja. Si no lo hacemos, Android lee el archivo viejo cuando falla.
+                    self.adb.run_command(["shell", "rm", "/sdcard/patrol_dump.xml"], s)
+                    
+                    # 2. Tomamos foto nueva.
+                    dump_out, _, _ = self.adb.run_command(["shell", "uiautomator", "dump", "/sdcard/patrol_dump.xml"], s)
+                    
+                    # 3. EL TRUCO MAESTRO: Si uiautomator falla con "ERROR: could not get idle state", 
+                    # significa matemáticamente que hay un video corriendo a 60fps bloqueando el escáner. 
+                    # ¡Por lo tanto, el stream ESTÁ VIVO!
+                    if dump_out and "ERROR" in dump_out:
+                        self.guardian_strikes[s] = 0
+                        continue
+                        
+                    # 4. Si no hubo error, leemos la foto (significa que la pantalla estaba quieta/muerta)
                     stdout, _, _ = self.adb.run_command(["shell", "cat", "/sdcard/patrol_dump.xml"], s)
                     
-                    # Candado Doble: Buscamos AMBAS frases en la misma pantalla para confirmar que es el cartel de caída.
                     is_offline = False
-                    if not getattr(self, 'shield_patrol_var').get():
-                        time.sleep(5)
-                        continue # Patrulla apagada por el usuario
-                        
-                    if stdout:
+                    if stdout and "No such file" not in stdout:
                         out_lower = stdout.lower()
-                        # Detección ultra-robusta sin importar mayúsculas
                         if ("volver" in out_lower) and ("fuera de l" in out_lower or "offline" in out_lower):
                             is_offline = True
-                    
+
                     if is_offline:
                         strikes = self.guardian_strikes.get(s, 0) + 1
                         self.guardian_strikes[s] = strikes
