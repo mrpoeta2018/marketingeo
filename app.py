@@ -2912,11 +2912,20 @@ class MarketingeoApp(ctk.CTk):
                     continue
 
                 try:
-                    # XML Dump Silencioso (1 a la vez para no congelar los demás)
+                    # 1. MÉTODO SPOTIFY (Escucha de Video Activo)
+                    # Revisamos si el motor de Android está reproduciendo video/audio.
+                    media_out, _, _ = self.adb.run_command(["shell", "dumpsys", "media_session"], s)
+                    if media_out and ("state=PlaybackState {state=3" in media_out or "state=3" in media_out):
+                        # ¡El stream está EN VIVO y reproduciendo perfectamente!
+                        self.guardian_strikes[s] = 0
+                        continue  # Saltamos al siguiente celular, este está sano.
+
+                    # 2. ESCÁNER VISUAL (Solo si el video no está sonando/reproduciendo)
                     self.adb.run_command(["shell", "uiautomator", "dump", "/sdcard/patrol_dump.xml"], s)
                     stdout, _, _ = self.adb.run_command(["shell", "cat", "/sdcard/patrol_dump.xml"], s)
                     
-                    if stdout and ("fuera de línea" in stdout or "Volver" in stdout or "offline" in stdout.lower()):
+                    # Búsqueda ESTRICTA (Quitamos "Volver" y "offline" genérico para evitar Falsos Positivos del sistema o chat)
+                    if stdout and ("fuera de línea" in stdout or "is offline" in stdout):
                         strikes = self.guardian_strikes.get(s, 0) + 1
                         self.guardian_strikes[s] = strikes
                         
