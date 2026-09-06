@@ -2130,22 +2130,22 @@ class MarketingeoApp(ctk.CTk):
         self.kick_bot_stop_btn = ctk.CTkButton(btn_row, text="DETENER BOT", fg_color="#dc2626", hover_color="#b91c1c", font=("Arial", 13, "bold"), command=self.stop_cascade_bot)
         self.kick_bot_stop_btn.pack(side="left")
         
-        # --- Escudos Visuales ---
+        # --- Escudos Interactivos (Interruptores) ---
         shields_frame = ctk.CTkFrame(bot_frame, fg_color="transparent")
         shields_frame.pack(fill="x", padx=15, pady=(0, 15))
-        ctk.CTkLabel(shields_frame, text="Escudos:", font=("Arial", 11, "bold"), text_color="#94A3B8").pack(side="left", padx=(0, 10))
+        ctk.CTkLabel(shields_frame, text="Escudos (Activa/Desactiva):", font=("Arial", 11, "bold"), text_color="#94A3B8").pack(side="left", padx=(0, 10))
         
-        msg_patrulla = "🛡️ Escudo Patrulla (Guardián de Caídas)\n\nTrabaja en modo invisible (segundo plano) buscando pantallas caídas (Fuera de Línea).\n\n▶ Si la pantalla se cae, reinyecta el link.\n▶ Si el celular no puede volver al stream tras 3 intentos, lo manda a 🚨 CUARENTENA aislandolo del bot principal.\n▶ Usa el Método Spotify para proteger a los celulares sanos."
-        self.shield_patrol_btn = ctk.CTkButton(shields_frame, text="🛡️ Patrulla (Inactiva)", width=60, height=22, fg_color="#475569", hover_color="#334155", font=("Arial", 11, "bold"), command=lambda: self.show_info_modal("Escudo Patrulla", msg_patrulla))
-        self.shield_patrol_btn.pack(side="left", padx=5)
+        self.shield_patrol_var = ctk.BooleanVar(value=True)
+        self.shield_patrol_switch = ctk.CTkSwitch(shields_frame, text="🛡️ Patrulla", variable=self.shield_patrol_var, font=("Arial", 11, "bold"), progress_color="#059669")
+        self.shield_patrol_switch.pack(side="left", padx=10)
         
-        msg_choque = "🔒 Escudo Anti-Choques\n\nCuando el Bot Cascada está encendido, este escudo bloquea automáticamente los demás botones manuales de la interfaz.\n\n▶ Evita que por error envíes comandos simultáneos que saturen el cable USB o congelen los celulares."
-        self.shield_anti_btn = ctk.CTkButton(shields_frame, text="🔒 Seguros (Inactivos)", width=60, height=22, fg_color="#475569", hover_color="#334155", font=("Arial", 11, "bold"), command=lambda: self.show_info_modal("Escudo Anti-Choques", msg_choque))
-        self.shield_anti_btn.pack(side="left", padx=5)
+        self.shield_anti_var = ctk.BooleanVar(value=True)
+        self.shield_anti_switch = ctk.CTkSwitch(shields_frame, text="🔒 Anti-Choques", variable=self.shield_anti_var, font=("Arial", 11, "bold"), progress_color="#2563EB")
+        self.shield_anti_switch.pack(side="left", padx=10)
         
-        msg_cuarentena = "☣️ Escudo Cuarentena\n\nEs un mecanismo de defensa para la granja.\n\n▶ Si un teléfono tiene la batería muerta, la app crasheada o no inicia sesión, se le pone la etiqueta 🚨 CUARENTENA.\n▶ El bot principal lo ignorará a velocidad luz, para no perder tiempo ni frenar el farmeo en los demás.\n▶ Se resetea deteniendo e iniciando el bot."
-        self.shield_quar_btn = ctk.CTkButton(shields_frame, text="☣️ 0 en Cuarentena", width=60, height=22, fg_color="#475569", hover_color="#334155", font=("Arial", 11, "bold"), command=lambda: self.show_info_modal("Escudo Cuarentena", msg_cuarentena))
-        self.shield_quar_btn.pack(side="left", padx=5)
+        self.shield_quar_var = ctk.BooleanVar(value=True)
+        self.shield_quar_switch = ctk.CTkSwitch(shields_frame, text="☣️ Cuarentenas", variable=self.shield_quar_var, font=("Arial", 11, "bold"), progress_color="#DC2626")
+        self.shield_quar_switch.pack(side="left", padx=10)
         
         self.kick_auto = ctk.BooleanVar(value=False)  # compat
         self.kick_interact = ctk.BooleanVar(value=False)  # compat
@@ -2517,7 +2517,7 @@ class MarketingeoApp(ctk.CTk):
                     s = dev['serial']
                     
                     ai_state = self.device_ai_states.get(s, {"paused": False, "personality": "🤖 Normal", "quarantine": False})
-                    if ai_state.get("quarantine", False):
+                    if ai_state.get("quarantine", False) and (not hasattr(self, 'shield_quar_var') or self.shield_quar_var.get()):
                         lbl = self.device_ui_map[s].get("timer")
                         if lbl: self.after(0, lambda lbl=lbl: lbl.configure(text=" 🚨 CUARENTENA", text_color="#EF4444"))
                         return
@@ -2923,11 +2923,11 @@ class MarketingeoApp(ctk.CTk):
             
             # Dinámica UI: Contar cuantos están en cuarentena en tiempo real
             quarantined = sum(1 for s in self.device_ai_states if self.device_ai_states[s].get("quarantine"))
-            if hasattr(self, 'shield_quar_btn'):
+            if hasattr(self, 'shield_quar_switch'):
                 if quarantined > 0:
-                    self.after(0, lambda q=quarantined: self.shield_quar_btn.configure(text=f"☣️ {q} en Cuarentena", fg_color="#DC2626"))
+                    self.after(0, lambda q=quarantined: self.shield_quar_switch.configure(text=f"☣️ {q} en Cuarentena"))
                 else:
-                    self.after(0, lambda: self.shield_quar_btn.configure(text="☣️ 0 en Cuarentena", fg_color="#059669" if getattr(self, '_cascade_running', False) else "#475569"))
+                    self.after(0, lambda: self.shield_quar_switch.configure(text="☣️ Cuarentenas (0)"))
 
             if not devices:
                 time.sleep(10)
@@ -2952,8 +2952,14 @@ class MarketingeoApp(ctk.CTk):
                     
                     # Candado Doble: Buscamos AMBAS frases en la misma pantalla para confirmar que es el cartel de caída.
                     is_offline = False
+                    if not getattr(self, 'shield_patrol_var').get():
+                        time.sleep(5)
+                        continue # Patrulla apagada por el usuario
+                        
                     if stdout:
-                        if ("fuera de línea" in stdout and "Volver" in stdout) or ("is offline" in stdout):
+                        out_lower = stdout.lower()
+                        # Detección ultra-robusta sin importar mayúsculas
+                        if ("volver" in out_lower) and ("fuera de l" in out_lower or "offline" in out_lower):
                             is_offline = True
                     
                     if is_offline:
@@ -3028,7 +3034,7 @@ class MarketingeoApp(ctk.CTk):
                     s = dev['serial']
                     
                     ai_state = self.device_ai_states.get(s, {"paused": False, "personality": "🤖 Normal", "quarantine": False})
-                    if ai_state.get("quarantine", False):
+                    if ai_state.get("quarantine", False) and (not hasattr(self, 'shield_quar_var') or self.shield_quar_var.get()):
                         lbl = self.device_ui_map[s].get("timer")
                         if lbl: self.after(0, lambda lbl=lbl: lbl.configure(text=" 🚨 CUARENTENA", text_color="#EF4444"))
                         return
