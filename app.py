@@ -3771,14 +3771,14 @@ class MarketingeoApp(ctk.CTk):
 
     def start_kick_google_login(self):
         if not hasattr(self, 'engine') or not self.engine.active_devices:
-            self.acc_log(" [Error] No hay dispositivos activos.", "error")
+            self.log_msg(" [Error] No hay dispositivos activos.", "error")
             return
             
         selected = [dev for dev in self.engine.active_devices if dev['serial'] in self.acc_device_checkboxes and self.acc_device_checkboxes[dev['serial']].get()]
         if not selected:
             selected = self.engine.active_devices
             
-        self.acc_log(f" [Kick] Iniciando Pre-Check en {len(selected)} dispositivos...", "info")
+        self.log_msg(f" [Kick] Iniciando Pre-Check en {len(selected)} dispositivos...", "info")
         
         # UI Indicator
         if hasattr(self, 'btn_kick_login'):
@@ -3805,7 +3805,7 @@ class MarketingeoApp(ctk.CTk):
         def check_device(dev):
             if getattr(self, 'stop_social_threads', False): return
             s = dev['serial']
-            self.acc_log(f" [{s[-4:]}] Verificando sesion actual de Kick...", "info")
+            self.log_msg(f" [{s[-4:]}] Verificando sesion actual de Kick...", "info")
             self.adb.run_command(["shell", "input", "keyevent", "4"], s)
             time.sleep(1)
             self.adb.run_command(["shell", "am", "start", "-n", "com.kick.mobile/com.kick.mobile.MainActivity"], s)
@@ -3830,13 +3830,13 @@ class MarketingeoApp(ctk.CTk):
                 time.sleep(2)
                 
             if needs_login:
-                self.acc_log(f" [{s[-4:]}] Kick cerrado. Iniciando Auto-Login de Google...", "warn")
+                self.log_msg(f" [{s[-4:]}] Kick cerrado. Iniciando Auto-Login de Google...", "warn")
                 self._kick_google_login_thread(s)
                 # Opcional: Marcarlo como X por si acaso fallo el login, y el usuario le da pre-check de nuevo para confirmar
                 if hasattr(self, 'acc_device_checkboxes') and s in self.acc_device_checkboxes:
                     self.after(0, lambda s=s: self.acc_device_checkboxes[s].configure(text=f"{s} ❌", text_color="#EF4444"))
             else:
-                self.acc_log(f" [{s[-4:]}] Sesion OK.", "success")
+                self.log_msg(f" [{s[-4:]}] Sesion OK.", "success")
                 if hasattr(self, 'acc_device_checkboxes') and s in self.acc_device_checkboxes:
                     self.after(0, lambda s=s: self.acc_device_checkboxes[s].configure(text=f"{s} ✅", text_color="#10B981"))
                     # Desmarcar para que el usuario pueda reintentar solo los que fallaron
@@ -3845,7 +3845,7 @@ class MarketingeoApp(ctk.CTk):
         with ThreadPoolExecutor(max_workers=batch_size) as executor:
             executor.map(check_device, selected)
             
-        self.acc_log(" [Kick] Proceso de Verificacion Terminado.", "success")
+        self.log_msg(" [Kick] Proceso de Verificacion Terminado.", "success")
         if hasattr(self, 'btn_kick_login'):
             self.after(0, lambda: self.btn_kick_login.configure(text=" 1. Pre-Check (Loguear Cuentas)", fg_color="#2563EB"))
 
@@ -3871,10 +3871,10 @@ class MarketingeoApp(ctk.CTk):
             time.sleep(total)
 
         try:
-            self.acc_log(f" [{serial[-4:]}] Iniciando Login con Google en KICK...", "info")
+            self.log_msg(f" [{serial[-4:]}] Iniciando Login con Google en KICK...", "info")
             
             self._force_portrait(serial)
-            self.acc_log(f" [{serial[-4:]}] Limpiando Kick para Iniciar Sesin...", "warn")
+            self.log_msg(f" [{serial[-4:]}] Limpiando Kick para Iniciar Sesin...", "warn")
             
             # Orden inteligente: Probar primero el índice que funcionó la vez pasada, luego los demás
             last_working_index = email_memory.get(serial, 0)
@@ -3888,13 +3888,13 @@ class MarketingeoApp(ctk.CTk):
                 s_sleep(2)
                 self.adb.run_command(["shell", "am", "start", "-n", "com.kick.mobile/com.kick.mobile.MainActivity"], serial)
                 
-                self.acc_log(f" [{serial[-4:]}] Esperando 20 segundos a que Kick cargue...", "info")
+                self.log_msg(f" [{serial[-4:]}] Esperando 20 segundos a que Kick cargue...", "info")
                 s_sleep(20) # 20 SEGUNDOS COMO PIDIO EL USUARIO
                 
                 # Iniciar Sesion (Barra superior)
                 click_login = self.find_and_click_by_text(serial, ["iniciar sesi", "log in"], do_swipe=False)
                 if not click_login:
-                    self.acc_log(f" [{serial[-4:]}] ❌ No se encontro boton 'Iniciar sesion'. Reintentando...", "error")
+                    self.log_msg(f" [{serial[-4:]}] ❌ No se encontro boton 'Iniciar sesion'. Reintentando...", "error")
                     continue # No hacemos toque ciego para evitar ir a la Play Store
                     
                 s_sleep(8)
@@ -3904,43 +3904,43 @@ class MarketingeoApp(ctk.CTk):
                 try:
                     stdout, _, _ = self.adb.run_command(["shell", "dumpsys", "input_method"], serial)
                     if "mInputShown=true" in stdout:
-                        self.acc_log(f" [{serial[-4:]}] Teclado detectado tapando la pantalla. Ocultando...", "info")
+                        self.log_msg(f" [{serial[-4:]}] Teclado detectado tapando la pantalla. Ocultando...", "info")
                         self.adb.run_command(["shell", "input", "keyevent", "4"], serial)
                         time.sleep(2)
                 except Exception as e:
-                    self.acc_log(f" [{serial[-4:]}] Error checkeando teclado: {e}", "error")
+                    self.log_msg(f" [{serial[-4:]}] Error checkeando teclado: {e}", "error")
                 # ---------------------------------------
                 
                 # Continuar con Google
                 click_google = self.find_and_click_by_text(serial, ["continuar con google", "continue with google", "google"], do_swipe=False)
                 if not click_google:
-                    self.acc_log(f" [{serial[-4:]}] ❌ No se encontro boton 'Google'. Reintentando...", "error")
+                    self.log_msg(f" [{serial[-4:]}] ❌ No se encontro boton 'Google'. Reintentando...", "error")
                     continue
                     
                 s_sleep(12)
                 
                 # Seleccionar cuenta Gmail por índice
                 # Hacemos tap directo porque buscar texto siempre le da clic al primer correo de la lista.
-                self.acc_log(f" [{serial[-4:]}] Seleccionando correo en el índice {email_index}...", "info")
+                self.log_msg(f" [{serial[-4:]}] Seleccionando correo en el índice {email_index}...", "info")
                 y_offset = 310 + (email_index * 80)
                 self.adb.run_command(["shell", "input", "tap", "240", str(y_offset)], serial)
                 
-                self.acc_log(f" [{serial[-4:]}] Esperando 40s a que procese el inicio de sesión...", "info")
+                self.log_msg(f" [{serial[-4:]}] Esperando 40s a que procese el inicio de sesión...", "info")
                 s_sleep(40) # Aumentado a 40s porque Kick demora mucho en autenticar el correo
                 
                 # Omitir pantalla de Onboarding ("Cuéntanos un poco sobre ti" -> "Tal vez después")
                 click_onboarding = self.find_and_click_by_text(serial, ["tal vez despu", "maybe later", "omitir", "skip"], do_swipe=False)
                 if click_onboarding:
-                    self.acc_log(f" [{serial[-4:]}] Pantalla de bienvenida saltada ('Tal vez después')...", "info")
+                    self.log_msg(f" [{serial[-4:]}] Pantalla de bienvenida saltada ('Tal vez después')...", "info")
                     s_sleep(5)
                 
                 # VERIFICACION FINAL (Segundo check)
-                self.acc_log(f" [{serial[-4:]}] Realizando segundo check para confirmar inicio de sesion...", "info")
+                self.log_msg(f" [{serial[-4:]}] Realizando segundo check para confirmar inicio de sesion...", "info")
                 root2 = getattr(self, 'pull_and_parse', lambda x: None)(serial)
                 if root2 is not None:
                     texts2 = [n.get("text", "").lower() for n in root2.iter("node")]
                     if any("creadores destacados" in t or "tu cuenta" in t or "siguiendo" in t or "explorar" in t for t in texts2) and not any("log in" in t or "iniciar sesi" in t for t in texts2):
-                        self.acc_log(f" [{serial[-4:]}] ✅ KICK CONFIRMADO LOGUEADO CON EXITO.", "success")
+                        self.log_msg(f" [{serial[-4:]}] ✅ KICK CONFIRMADO LOGUEADO CON EXITO.", "success")
                         
                         # Guardar en memoria
                         email_memory[serial] = email_index
@@ -3953,13 +3953,13 @@ class MarketingeoApp(ctk.CTk):
                             self.after(0, lambda s=serial: self.acc_device_checkboxes[s].configure(text=f"{s} ✅", text_color="#10B981"))
                         return True
                     else:
-                        self.acc_log(f" [{serial[-4:]}] ⚠️ Falló la verificación de sesión. Intentando otro correo...", "warn")
+                        self.log_msg(f" [{serial[-4:]}] ⚠️ Falló la verificación de sesión. Intentando otro correo...", "warn")
                         
-            self.acc_log(f" [{serial[-4:]}] ❌ Fallo Login en Kick tras 5 intentos.", "error")
+            self.log_msg(f" [{serial[-4:]}] ❌ Fallo Login en Kick tras 5 intentos.", "error")
             return False
             
         except Exception as e:
-            self.acc_log(f" [{serial[-4:]}] Error en Kick Login: {e}", "error")
+            self.log_msg(f" [{serial[-4:]}] Error en Kick Login: {e}", "error")
             return False
 
 
